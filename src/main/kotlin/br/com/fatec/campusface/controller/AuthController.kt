@@ -40,7 +40,7 @@ class AuthController() {
     @PostMapping("/login")
     fun login(@RequestBody @Validated data: LoginDTO): ResponseEntity<ApiResponse<Map<String, Any>>> {
         return try {
-            println("LOGIN: $data")
+            println("LOGIN: ")
             if (!userService.validateEmail(data.email)) {
                 return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
@@ -109,71 +109,47 @@ class AuthController() {
         @RequestParam("role") role: Role,
         @RequestPart("image") image: MultipartFile
     ): ResponseEntity<ApiResponse<Any>> {
-
         return try {
-            println("DEBUG IMAGE ${image.originalFilename} (${image.contentType})")
-            println("DEBUG REGISTER -> fullName=$fullName, email=$email, role=$role")
-
             val userData = User(
                 fullName = fullName,
                 email = email,
                 hashedPassword = password,
                 document = document,
-                role = role,   // já é enum
-                faceImageId = "" // será preenchido abaixo
+                role = role
             )
 
-            val contentType = image.contentType
-            if (contentType != "image/png" && contentType != "image/jpeg" && contentType != "image/jpg") {
-                return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST).body(
-                        ApiResponse(
-                            message = "Apenas imagens PNG ou JPG são permitidas",
-                            success = false,
-                            data = null
-                        )
-                    )
-            }
+            // Delega TODA a lógica de criação para o UserService
+            val createdUserDto = userService.createUser(userData, image)
 
-            val existingUser = userService.getUserByEmail(userData.email)
-            if (existingUser != null) {
-                return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body(
-                        ApiResponse(
-                            message = "Email já cadastrado",
-                            success = false,
-                            data = null
-                        )
-                    )
-            }
-
-
-//            val imageBase64 = Base64.getEncoder().encodeToString(image.bytes)
-            val imageBase64 = image.originalFilename
-            val userDto = userService.createUser(userData, imageBase64)
-
-            ResponseEntity.ok(
+            ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse(
                     success = true,
-                    message = "Usuário registrado com sucesso",
-                    data = userDto
+                    message = "Usuário registrado com sucesso!",
+                    data = createdUserDto
                 )
             )
 
+        } catch (e: IllegalArgumentException) {
+            // Captura erros de validação (email duplicado, imagem inválida)
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ApiResponse(
+                    success = false,
+                    message = e.message!!,
+                    data = null
+                )
+            )
         } catch (e: Exception) {
+            // Captura outros erros inesperados (ex: falha no upload)
             println("Erro ao registrar usuário: ${e.message}")
             e.printStackTrace()
-
-            ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(
-                    ApiResponse(
-                        message = "Ocorreu um erro ao registrar o usuário",
-                        success = false,
-                        data = null
-                    )
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                ApiResponse(
+                    message = "Ocorreu um erro inesperado ao registrar o usuário.",
+                    success = false,
+                    data = null
                 )
+            )
         }
     }
+
 }

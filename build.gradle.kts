@@ -40,7 +40,10 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5") // For JSON processing with Jackson
 	implementation ("com.auth0:java-jwt:4.5.0")
 
-	implementation("com.cloudinary:cloudinary-http44:1.39.0")
+	implementation("com.cloudinary:cloudinary-http44:1.39.0") {
+		// Adicione este bloco para excluir o commons-logging
+		exclude(group = "commons-logging", module = "commons-logging")
+	}
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

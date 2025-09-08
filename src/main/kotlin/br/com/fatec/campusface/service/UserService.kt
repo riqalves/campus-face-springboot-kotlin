@@ -6,34 +6,53 @@ import br.com.fatec.campusface.repository.UserRepository
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 
 @Service
 class UserService(
     private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val cloudinaryService: CloudinaryService
 ) {
 
-    fun createUser(userData: User, imageBase64: String?): UserDTO {
-        // Lógica para criptografar a senha, etc.
-        val encryptedPassword = passwordEncoder.encode(userData.hashedPassword)
+    fun createUser(userData: User, imageFile: MultipartFile): UserDTO {
+        if (userRepository.findByEmail(userData.email) != null) {
+            throw IllegalArgumentException("Email já cadastrado.")
+        }
+
+        validateImage(imageFile)
+
+        val imageUrl = cloudinaryService.upload(imageFile)
+
         val userToSave = userData.copy(
-            hashedPassword = encryptedPassword,
-            faceImageId = imageBase64 // ou sua lógica de imagem
+            hashedPassword = passwordEncoder.encode(userData.hashedPassword),
+            faceImageId = imageUrl
         )
 
-        // 1. Chama o repositório, que salva e retorna o modelo User completo
-        val savedUser: User = userRepository.save(userToSave)
+        val savedUser = userRepository.save(userToSave)
 
-        // 2. AQUI O SERVIÇO CONVERTE o modelo 'User' para um 'UserDTO' seguro
-        //    O hashedPassword NUNCA sai da camada de serviço.
         return UserDTO(
             id = savedUser.id,
             fullName = savedUser.fullName,
             email = savedUser.email,
             role = savedUser.role,
             document = savedUser.document,
-            faceImageId = savedUser.faceImageId ?: ""
+            faceImageId = savedUser.faceImageId!!
         )
+    }
+
+    private fun validateImage(imageFile: MultipartFile) {
+        // Validação de tipo de arquivo
+        val allowedTypes = listOf("image/png", "image/jpeg", "image/jpg")
+        if (imageFile.contentType !in allowedTypes) {
+            throw IllegalArgumentException("Formato de imagem inválido. Apenas PNG, JPG e JPEG são permitidos.")
+        }
+
+        // Validação de tamanho (ex: máximo de 5MB)
+        val maxSizeInBytes = 5 * 1024 * 1024 // 5 MB
+        if (imageFile.size > maxSizeInBytes) {
+            throw IllegalArgumentException("A imagem excede o tamanho máximo de 5MB.")
+        }
     }
 
     fun validateEmail(email: String): Boolean {
