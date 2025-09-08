@@ -40,6 +40,8 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5") // For JSON processing with Jackson
 	implementation ("com.auth0:java-jwt:4.5.0")
 
+	implementation("com.cloudinary:cloudinary-http44:1.39.0")
+
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
