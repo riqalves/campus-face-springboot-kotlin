@@ -3,7 +3,6 @@ package br.com.fatec.campusface.controller
 import br.com.fatec.campusface.dto.ApiResponse
 import br.com.fatec.campusface.dto.EntryRequestDTO
 import br.com.fatec.campusface.models.EntryRequest
-import br.com.fatec.campusface.models.User
 import br.com.fatec.campusface.dto.UserDTO
 
 import br.com.fatec.campusface.service.EntryRequestService
@@ -116,7 +115,7 @@ class EntryRequestController(
     ): ResponseEntity<ApiResponse<Any>> {
         return try {
             println("DEBUG - EntryRequestController $entryRequest")
-            val user = userService.getUser(requestId)
+            val user = userService.getUserById(requestId)
             val entryRequestDTO = EntryRequestDTO(
                 id = requestId,
                 user = user,
@@ -167,7 +166,7 @@ class EntryRequestController(
     ): ResponseEntity<ApiResponse<Any>>  {
         return try {
 
-            val user = userService.getUser(requestId)
+            val user = userService.getUserById(requestId)
             val entryRequestWithId = entryRequest.copy(id = requestId)
             val entryRequestDTO = EntryRequestDTO(
                 id = requestId,

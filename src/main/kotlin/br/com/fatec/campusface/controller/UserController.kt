@@ -1,7 +1,6 @@
 package br.com.fatec.campusface.controller
 
 import br.com.fatec.campusface.dto.UserDTO
-import br.com.fatec.campusface.models.User
 import br.com.fatec.campusface.service.UserService
 import org.springframework.web.bind.annotation.*
 
@@ -18,7 +17,7 @@ class UserController(private val userService: UserService) {
 
     @GetMapping("/{id}")
     fun getUser(@PathVariable id: String): UserDTO? =
-        userService.getUser(id)
+        userService.getUserById(id)
 
     @DeleteMapping("/{id}")
     fun deleteUser(@PathVariable id: String): Boolean =

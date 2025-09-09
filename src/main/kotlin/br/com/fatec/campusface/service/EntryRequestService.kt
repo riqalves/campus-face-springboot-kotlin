@@ -47,7 +47,7 @@ class EntryRequestService(
         // Atualiza status do pedido para "APPROVED"
         val updated = entryRequestRepository.updateStatus(entryRequest)
         println("DEBUG UPDATE: $updated ")
-        val user = updated.user?.id?.let { userService.getUser(it) }
+        val user = updated.user?.id?.let { userService.getUserById(it) }
         // Cria o membro na organização
         val member = OrganizationMember(
             userId =  entryRequest.userId,

@@ -21,7 +21,7 @@ class EntryRequestRepository(private val firestore: Firestore) {
         val docRef = collection.document() // Firestore gera o ID automático
 
 
-        val user = entryRequest.userId?.let { userService.getUser(it) }
+        val user = entryRequest.userId?.let { userService.getUserById(it) }
         val dto = EntryRequestDTO(
             id = docRef.id,
             user = user,
@@ -48,7 +48,7 @@ class EntryRequestRepository(private val firestore: Firestore) {
 
         return if (docSnapshot.exists()) {
             val request = docSnapshot.toObject(EntryRequest::class.java) ?: return null
-            val user = userService.getUser(request.userId!!) ?: return null
+            val user = userService.getUserById(request.userId!!) ?: return null
             EntryRequestDTO(
                 id = docSnapshot.id,
                 user = user,
@@ -70,7 +70,7 @@ class EntryRequestRepository(private val firestore: Firestore) {
             .get()
         return snapshot.documents.mapNotNull { doc ->
             val request = doc.toObject(EntryRequest::class.java) ?: return@mapNotNull null
-            val user = request.userId?.let { userService.getUser(it) }
+            val user = request.userId?.let { userService.getUserById(it) }
 
             EntryRequestDTO(
                 id = doc.id,
@@ -85,7 +85,7 @@ class EntryRequestRepository(private val firestore: Firestore) {
         return try {
 
             println("DEBUG UPDATE ENTRYREQUEST REPOSITORY: $entryRequest")
-            val user = entryRequest.userId.let { userService.getUser(it!!) }
+            val user = entryRequest.userId.let { userService.getUserById(it!!) }
             val snapshot = collection
                 .whereEqualTo("userId", entryRequest.userId)
                 .whereEqualTo("organizationId", entryRequest.organizationId)
@@ -132,7 +132,7 @@ class EntryRequestRepository(private val firestore: Firestore) {
 
         return querySnapshot.documents.mapNotNull { doc ->
             val request = doc.toObject(EntryRequest::class.java) ?: return@mapNotNull null
-            val user = request.userId?.let { userService.getUser(it) }
+            val user = request.userId?.let { userService.getUserById(it) }
             EntryRequestDTO(
                 id = doc.id,
                 user = user,
@@ -152,7 +152,7 @@ class EntryRequestRepository(private val firestore: Firestore) {
 
         val doc = snapshot.documents.firstOrNull() ?: return null
         val request = doc.toObject(EntryRequest::class.java) ?: return null
-        val user = request.userId?.let { userService.getUser(it) }
+        val user = request.userId?.let { userService.getUserById(it) }
 
         return EntryRequestDTO(
             id = doc.id,

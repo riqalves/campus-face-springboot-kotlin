@@ -39,21 +39,14 @@ class UserRepository(private val firestore: Firestore) {
     }
 
     fun findById(id: String): User? {
-        // Busca a referência do documento pelo ID fornecido
         val documentSnapshot = collection.document(id).get().get()
 
-        // Verifica se o documento realmente existe
         if (documentSnapshot.exists()) {
-            // 1. Converte o corpo do documento para o objeto User.
-            //    Neste ponto, o campo 'id' dentro do objeto ainda está vazio ("").
             val userObject = documentSnapshot.toObject(User::class.java)
 
-            // 2. CRUCIAL: Retorna uma CÓPIA do objeto,
-            //    mas agora com o campo 'id' preenchido com o ID real do documento.
             return userObject?.copy(id = documentSnapshot.id)
         }
 
-        // Retorna nulo se o documento não for encontrado
         return null
     }
     fun findByEmail(email: String): User? {

@@ -3,7 +3,6 @@ package br.com.fatec.campusface.service
 import br.com.fatec.campusface.dto.UserDTO
 import br.com.fatec.campusface.models.User
 import br.com.fatec.campusface.repository.UserRepository
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
@@ -84,7 +83,7 @@ class UserService(
         return null
     }
 
-    fun getUser(id: String): UserDTO? =
+    fun getUserById(id: String): UserDTO? =
         userRepository.findById(id)?.let { user -> UserDTO.fromEntity(id, user) }
 
     fun deleteUser(id: String): Boolean = userRepository.delete(id)
