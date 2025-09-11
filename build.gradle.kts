@@ -28,12 +28,22 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-//	compileOnly("org.projectlombok:lombok")
-//	annotationProcessor("org.projectlombok:lombok")
-
 	implementation("com.azure:azure-ai-vision-face:1.0.0-beta.2")
 	// https://mvnrepository.com/artifact/com.google.firebase/firebase-admin
 	implementation("com.google.firebase:firebase-admin:9.5.0")
+
+	implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+	implementation("software.amazon.awssdk:rekognition:2.26.10") {
+		exclude(group = "commons-logging", module = "commons-logging")
+	}
+	implementation("software.amazon.awssdk:auth:2.26.10") {
+		exclude(group = "commons-logging", module = "commons-logging")
+	}
+	implementation("software.amazon.awssdk:regions:2.26.10") {
+		exclude(group = "commons-logging", module = "commons-logging")
+	}
+
 
 	implementation("io.jsonwebtoken:jjwt-api:0.12.5") // Or the latest version
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
