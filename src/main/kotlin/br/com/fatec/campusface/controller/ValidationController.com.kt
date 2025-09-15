@@ -2,6 +2,7 @@ package br.com.fatec.campusface.controller
 
 import br.com.fatec.campusface.dto.ApiResponse
 import br.com.fatec.campusface.service.AwsFaceRecognitionService // Importe o serviço AWS
+import br.com.fatec.campusface.service.FacePlusPlusService
 // import br.com.fatec.campusface.service.FaceRecognitionService // Comente ou remova o Azure Face Service
 import br.com.fatec.campusface.service.UserService
 // ... (outros imports do Azure Face para o test-detect, se ainda for usá-lo)
@@ -22,7 +23,8 @@ import org.springframework.web.multipart.MultipartFile
 class ValidationController(
     private val userService: UserService,
     // private val faceRecognitionService: FaceRecognitionService, // Comente ou remova o Azure
-    private val awsFaceRecognitionService: AwsFaceRecognitionService, // Injete o serviço AWS
+    private val facePlusPlusService: FacePlusPlusService
+//    private val awsFaceRecognitionService: AwsFaceRecognitionService, // Injete o serviço AWS
 //    private val faceClient: FaceClient // Mantenha para o /test-detect, se quiser
 ) {
 
@@ -40,7 +42,7 @@ class ValidationController(
 
             val referenceImageUrl = userToValidate.faceImageId
 
-            val isMatch = awsFaceRecognitionService.facesMatch(referenceImageUrl, image)
+            val isMatch = facePlusPlusService.facesMatch(referenceImageUrl, image)
 
             val responseData = mapOf("match" to isMatch)
 
@@ -48,7 +50,7 @@ class ValidationController(
                 ResponseEntity.ok(
                     ApiResponse(
                         success = true,
-                        message = "Validação facial bem-sucedida (AWS). Acesso permitido.",
+                        message = "Validação facial bem-sucedida. Acesso permitido.",
                         data = responseData
                     )
                 )
@@ -56,7 +58,7 @@ class ValidationController(
                 ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                     ApiResponse(
                         success = false,
-                        message = "Validação facial falhou (AWS). As faces não correspondem.",
+                        message = "Validação facial falhou. As faces não correspondem.",
                         data = responseData
                     )
                 )
@@ -66,7 +68,7 @@ class ValidationController(
             println("ERRO na validação facial com AWS: ${e.message}")
             e.printStackTrace()
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                ApiResponse(success = false, message = "Ocorreu um erro interno durante a validação (AWS).", data = null)
+                ApiResponse(success = false, message = "Ocorreu um erro interno durante a validação.", data = null)
             )
         }
     }

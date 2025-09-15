@@ -1,7 +1,6 @@
 package br.com.fatec.campusface.configuration
 
 
-import br.com.fatec.campusface.service.AuthService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -20,7 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-class SecurityConfiguration(private val authService: AuthService) {
+class SecurityConfiguration() {
 
     @Autowired
     private lateinit var securityFilter : SecurityFilter
@@ -38,7 +37,6 @@ class SecurityConfiguration(private val authService: AuthService) {
                     .anyRequest().permitAll()
             }
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter::class.java)
-
             .build()
     }
 
