@@ -4,7 +4,7 @@ import br.com.fatec.campusface.dto.ApiResponse
 import br.com.fatec.campusface.dto.EntryRequestDTO
 import br.com.fatec.campusface.models.EntryRequest
 import br.com.fatec.campusface.dto.UserDTO
-
+import org.springframework.security.access.prepost.PreAuthorize
 import br.com.fatec.campusface.service.EntryRequestService
 import br.com.fatec.campusface.service.UserService
 import org.springframework.http.HttpStatus
@@ -198,15 +198,14 @@ class EntryRequestController(
 
 
     @GetMapping("/whoami")
+    @PreAuthorize("isAuthenticated()")
     fun whoAmI(authentication: Authentication): ResponseEntity<ApiResponse<Any>> {
         try {
 
-            println("TESTE whoAmI")
-            // 1. FAÇA O CAST PARA O SEU MODELO 'User', que implementa UserDetails
-            //    (e não o User genérico do Spring, nem o DTO)
+            println("TESTE whoAmI $authentication")
+
             val userModel = authentication.principal as br.com.fatec.campusface.models.User
 
-            // 2. A PARTIR DO MODELO, CRIE O DTO para a resposta
             val userResponseDto = UserDTO(
                 id = userModel.id,
                 fullName = userModel.fullName,
@@ -216,7 +215,6 @@ class EntryRequestController(
                 faceImageId = userModel.faceImageId!!
             )
 
-            // 3. Monte a resposta usando o DTO criado
             val authInfo = mapOf(
                 "user" to userResponseDto, // Retornando o DTO formatado
                 "authorities" to authentication.authorities.map { it.authority },
@@ -231,7 +229,6 @@ class EntryRequestController(
                 )
             )
         } catch (e: ClassCastException) {
-            // Este erro agora será mais específico e ajudará a depurar
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 ApiResponse(
                     success = false,

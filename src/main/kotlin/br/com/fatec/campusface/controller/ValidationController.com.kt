@@ -1,16 +1,9 @@
 package br.com.fatec.campusface.controller
 
 import br.com.fatec.campusface.dto.ApiResponse
-import br.com.fatec.campusface.service.AwsFaceRecognitionService // Importe o serviço AWS
 import br.com.fatec.campusface.service.FacePlusPlusService
-// import br.com.fatec.campusface.service.FaceRecognitionService // Comente ou remova o Azure Face Service
 import br.com.fatec.campusface.service.UserService
-// ... (outros imports do Azure Face para o test-detect, se ainda for usá-lo)
-import com.azure.ai.vision.face.FaceClient
-import com.azure.ai.vision.face.models.FaceDetectionModel
-import com.azure.ai.vision.face.models.FaceRecognitionModel
-import com.azure.core.util.BinaryData
-
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -18,29 +11,38 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
+// Adicione esta anotação no nível da classe para proteger todos os endpoints dentro dela
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/validate")
 class ValidationController(
     private val userService: UserService,
-    // private val faceRecognitionService: FaceRecognitionService, // Comente ou remova o Azure
     private val facePlusPlusService: FacePlusPlusService
-//    private val awsFaceRecognitionService: AwsFaceRecognitionService, // Injete o serviço AWS
-//    private val faceClient: FaceClient // Mantenha para o /test-detect, se quiser
 ) {
 
     @PreAuthorize("hasRole('VALIDATOR')")
     @PostMapping("/face/{userId}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun validateFace(
         @PathVariable userId: String,
-        @RequestPart("image") image: MultipartFile
+        @RequestPart("image") image: MultipartFile?
     ): ResponseEntity<ApiResponse<Map<String, Any>>> {
         return try {
+
+            if (image == null || image.isEmpty) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ApiResponse(success = false, message = "O arquivo de imagem para validação não pode ser nulo ou vazio.", data = null)
+                )
+            }
+
             val userToValidate = userService.getUserById(userId)
                 ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     ApiResponse(success = false, message = "Usuário a ser validado não encontrado.", data = null)
                 )
 
             val referenceImageUrl = userToValidate.faceImageId
+                ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ApiResponse(success = false, message = "Usuário não possui uma imagem de referência cadastrada.", data = null)
+                )
 
             val isMatch = facePlusPlusService.facesMatch(referenceImageUrl, image)
 
@@ -72,35 +74,4 @@ class ValidationController(
             )
         }
     }
-
-//    @PostMapping("/test-detect", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-//    fun testDetection(@RequestPart("image") image: MultipartFile): ResponseEntity<ApiResponse<Any>> {
-//        // ... (seu método testDetection do Azure sem alterações)
-//        try {
-//            val imageBytes = BinaryData.fromBytes(image.bytes)
-//            val detectedFaces = faceClient.detect(imageBytes, FaceDetectionModel.DETECTION_03, FaceRecognitionModel.RECOGNITION_04, false)
-//
-//            if (detectedFaces.isNotEmpty()) {
-//                val firstFace = detectedFaces.first()
-//                val faceRectangleMap = mapOf(
-//                    "top" to firstFace.faceRectangle.top,
-//                    "left" to firstFace.faceRectangle.left,
-//                    "width" to firstFace.faceRectangle.width,
-//                    "height" to firstFace.faceRectangle.height
-//                )
-//
-//                val responseData: Map<String, Any> = mapOf(
-//                    "facesDetected" to detectedFaces.size,
-//                    "firstFaceRectangle" to faceRectangleMap
-//                )
-//                return ResponseEntity.ok(ApiResponse(success = true, message = "Detecção facial Azure funcionou!", data = responseData))
-//            } else {
-//                return ResponseEntity.ok(ApiResponse(success = true, message = "Nenhum rosto detectado na imagem Azure.", data = null))
-//            }
-//        } catch (e: Exception) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-//                ApiResponse(success = false, message = "Erro durante a detecção Azure: ${e.message}", data = null)
-//            )
-//        }
-//    }
 }

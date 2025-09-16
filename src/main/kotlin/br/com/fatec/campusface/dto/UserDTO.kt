@@ -8,7 +8,7 @@ data class UserDTO(
     val fullName: String,
     val email: String,
     val document: String,
-    val faceImageId: String,
+    val faceImageId: String?,
     val role: Role
 ) {
     companion object {
@@ -26,7 +26,7 @@ data class UserDTO(
 
 
 data class ApiResponse<T>(
-    val message: String,
+    val message: String?,
     val success: Boolean,
     val data: T? = null
 )

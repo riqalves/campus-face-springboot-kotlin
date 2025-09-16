@@ -1,12 +1,7 @@
 package br.com.fatec.campusface.repository
 
-import br.com.fatec.campusface.dto.UserDTO
-import org.springframework.security.core.userdetails.User as SpringUser
 import br.com.fatec.campusface.models.User
 import com.google.cloud.firestore.Firestore
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Repository
 
 
@@ -62,33 +57,9 @@ class UserRepository(private val firestore: Firestore) {
 
         val document = snapshot.documents.first()
         // Retorna o seu modelo User, preenchendo o ID
-        return document.toObject(User::class.java)?.copy(id = document.id)
+        return document.toObject(User::class.java).copy(id = document.id)
     }
 
-
-    fun findUserDetailByEmail(email: String): UserDetails {
-        val userPair = findAll().firstOrNull { it.second.email == email }
-            ?: throw UsernameNotFoundException("Usuário não encontrado")
-        val user = userPair.second
-        return SpringUser(
-            user.email,
-            user.hashedPassword,
-            listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
-        )
-    }
-
-
-
-    fun findUserDetailById(id: String): UserDetails? {
-        println("FindUserDetailById debug: $id")
-        val user = findById(id) ?: return null
-
-        return SpringUser(
-            user.email,
-            user.hashedPassword,
-            listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
-        )
-    }
 
     fun delete(id: String): Boolean {
         return try {

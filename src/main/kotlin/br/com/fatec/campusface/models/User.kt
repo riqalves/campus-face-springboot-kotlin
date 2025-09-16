@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails
 
 
 data class User(
-    val id: String? = "",
+    val id: String = "",
     val fullName: String = "",
     val email: String = "",
     val hashedPassword: String = "", // será criptografada

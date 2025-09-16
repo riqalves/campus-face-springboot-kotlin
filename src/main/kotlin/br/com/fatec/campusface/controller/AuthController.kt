@@ -107,9 +107,14 @@ class AuthController() {
         @RequestParam("hashedPassword") password: String,
         @RequestParam("document") document: String,
         @RequestParam("role") role: Role,
-        @RequestPart("image") image: MultipartFile
+        @RequestPart("image", required = false) image: MultipartFile?
     ): ResponseEntity<ApiResponse<Any>> {
         return try {
+            // 2. Adiciona uma validação: a imagem só é obrigatória se a role for MEMBER.
+            if (role == Role.MEMBER && (image == null || image.isEmpty)) {
+                throw IllegalArgumentException("A imagem é obrigatória para a role MEMBER.")
+            }
+
             val userData = User(
                 fullName = fullName,
                 email = email,
@@ -118,7 +123,6 @@ class AuthController() {
                 role = role
             )
 
-            // Delega TODA a lógica de criação para o UserService
             val createdUserDto = userService.createUser(userData, image)
 
             ResponseEntity.status(HttpStatus.CREATED).body(
@@ -130,16 +134,14 @@ class AuthController() {
             )
 
         } catch (e: IllegalArgumentException) {
-            // Captura erros de validação (email duplicado, imagem inválida)
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 ApiResponse(
                     success = false,
-                    message = e.message!!,
+                    message = e.message,
                     data = null
                 )
             )
         } catch (e: Exception) {
-            // Captura outros erros inesperados (ex: falha no upload)
             println("Erro ao registrar usuário: ${e.message}")
             e.printStackTrace()
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(

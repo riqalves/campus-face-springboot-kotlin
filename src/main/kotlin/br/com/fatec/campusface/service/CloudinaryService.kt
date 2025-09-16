@@ -11,9 +11,25 @@ class CloudinaryService(
 ) {
 
 
-    fun upload(file: MultipartFile): String {
+    fun upload(file: MultipartFile): Map<String, String> {
         val result = cloudinary.uploader().upload(file.bytes, ObjectUtils.emptyMap())
-
-        return result["secure_url"] as String
+        return mapOf(
+            "secure_url" to (result["secure_url"] as String),
+            "public_id" to (result["public_id"] as String)
+        )
     }
-}
+
+    /**
+     * Deleta uma imagem do Cloudinary usando seu public_id.
+     */
+    fun delete(publicId: String) {
+        try {
+            // O método 'destroy' é usado para deletar um recurso
+            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap())
+            println("DEBUG - Imagem com public_id '$publicId' deletada do Cloudinary.")
+        } catch (e: Exception) {
+            println("ERRO - Falha ao deletar a imagem '$publicId' do Cloudinary: ${e.message}")
+
+        }
+    }
+    }

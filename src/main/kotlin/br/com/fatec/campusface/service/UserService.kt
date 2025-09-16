@@ -14,18 +14,23 @@ class UserService(
     private val cloudinaryService: CloudinaryService
 ) {
 
-    fun createUser(userData: User, imageFile: MultipartFile): UserDTO {
+    fun createUser(userData: User, imageFile: MultipartFile?): UserDTO {
         if (userRepository.findByEmail(userData.email) != null) {
             throw IllegalArgumentException("Email já cadastrado.")
         }
 
-        validateImage(imageFile)
+        var imagePublicId: String? = null
 
-        val imageUrl = cloudinaryService.upload(imageFile)
+        if (imageFile != null) {
+            validateImage(imageFile)
+            val uploadResult = cloudinaryService.upload(imageFile)
+            imagePublicId = uploadResult["public_id"]
+                ?: throw IllegalStateException("O Public ID não foi retornado pelo Cloudinary após o upload.")
+        }
 
         val userToSave = userData.copy(
             hashedPassword = passwordEncoder.encode(userData.hashedPassword),
-            faceImageId = imageUrl
+            faceImageId = imagePublicId
         )
 
         val savedUser = userRepository.save(userToSave)
@@ -36,7 +41,7 @@ class UserService(
             email = savedUser.email,
             role = savedUser.role,
             document = savedUser.document,
-            faceImageId = savedUser.faceImageId!!
+            faceImageId = savedUser.faceImageId // Se for nulo, o DTO também terá o campo nulo
         )
     }
 
@@ -47,7 +52,7 @@ class UserService(
             throw IllegalArgumentException("Formato de imagem inválido. Apenas PNG, JPG e JPEG são permitidos.")
         }
 
-        // Validação de tamanho (ex: máximo de 5MB)
+        // Validação de tamanho
         val maxSizeInBytes = 5 * 1024 * 1024 // 5 MB
         if (imageFile.size > maxSizeInBytes) {
             throw IllegalArgumentException("A imagem excede o tamanho máximo de 5MB.")
@@ -63,23 +68,19 @@ class UserService(
         userRepository.findAll().map { (id, user) -> UserDTO.fromEntity(id, user) }
 
     fun getUserByEmail(email: String): UserDTO? {
-        // 1. Busca o modelo 'User' do repositório. O resultado pode ser nulo.
         val userModel: User? = userRepository.findByEmail(email)
 
-        // 2. Verifica se o usuário foi encontrado (se userModel não é nulo)
         if (userModel != null) {
-            // 3. Se foi encontrado, cria e retorna um UserDTO com os dados do modelo.
             return UserDTO(
                 id = userModel.id,
                 fullName = userModel.fullName,
                 email = userModel.email,
                 role = userModel.role,
                 document = userModel.document,
-                faceImageId = userModel.faceImageId ?: "" // Usa um valor padrão se for nulo
+                faceImageId = userModel.faceImageId ?: ""
             )
         }
 
-        // 4. Se não foi encontrado, retorna nulo.
         return null
     }
 

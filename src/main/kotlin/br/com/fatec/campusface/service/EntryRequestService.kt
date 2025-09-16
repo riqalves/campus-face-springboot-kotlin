@@ -52,7 +52,7 @@ class EntryRequestService(
         val member = OrganizationMember(
             userId =  entryRequest.userId,
             organizationId = request.organizationId,
-            currentFaceId = user!!.faceImageId
+            faceImageId = user!!.faceImageId
         )
         println("DEBUG ENTRYREQUESTSERVICE: $member")
 

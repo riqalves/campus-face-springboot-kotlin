@@ -34,6 +34,8 @@ dependencies {
 
 	implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
+
 	implementation("software.amazon.awssdk:rekognition:2.26.10") {
 		exclude(group = "commons-logging", module = "commons-logging")
 	}
