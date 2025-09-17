@@ -1,7 +1,6 @@
 package br.com.fatec.campusface.service
 
 import br.com.fatec.campusface.models.ChangeRequest
-import br.com.fatec.campusface.models.RequestStatus
 import br.com.fatec.campusface.repository.ChangeRequestRepository
 import br.com.fatec.campusface.repository.OrganizationMemberRepository
 import org.springframework.stereotype.Service

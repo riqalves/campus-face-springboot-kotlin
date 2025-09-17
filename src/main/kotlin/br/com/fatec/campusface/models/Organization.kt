@@ -5,7 +5,7 @@ data class Organization(
     val id: String = "",
     val name: String = "",
     val description: String = "",
-    val admins: List<User> = emptyList(),
-    val validators: List<User> = emptyList(),
-    val members: List<OrganizationMember> = emptyList()
+    val adminIds: List<String> = emptyList(),      // Alterado para List<String>
+    val validatorIds: List<String> = emptyList(),  // Alterado para List<String>
+    val memberIds: List<String> = emptyList()      // Alterado para List<String>
 )

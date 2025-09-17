@@ -28,15 +28,7 @@ class OrganizationRepository(private val firestore: Firestore) {
         return organizationWithId
     }
 
-    fun findMembersByOrganizationId(id: String): List<OrganizationMember> {
-        val doc = collection.document(id).get().get()
-        return if (doc.exists()) {
-            val organization = doc.toObject(Organization::class.java)
-            organization?.members ?: emptyList()
-        } else {
-            emptyList()
-        }
-    }
+
 
 
     fun findById(id: String): Organization? {
@@ -51,14 +43,12 @@ class OrganizationRepository(private val firestore: Firestore) {
 
     fun update(id: String, organization: Organization): Organization? {
         val docRef = collection.document(id)
-        val doc = docRef.get().get()
-
-        return if (doc.exists()) {
-            docRef.set(organization).get()
-            organization
-        } else {
-            null
+        // Verifica se o documento existe antes de tentar atualizar
+        if (docRef.get().get().exists()) {
+            docRef.set(organization).get() // 'set' com um ID existente substitui o documento
+            return organization
         }
+        return null
     }
 
     fun delete(id: String): Boolean {

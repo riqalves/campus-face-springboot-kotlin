@@ -32,4 +32,19 @@ class CloudinaryService(
 
         }
     }
+
+    /**
+     * Gera uma URL assinada e temporária para um recurso do Cloudinary.
+     * A URL expira após um tempo pré-configurado (padrão de 1 hora).
+     * @param publicId O identificador único do arquivo no Cloudinary.
+     * @return Uma URL completa e segura que expira.
+     */
+    fun generateSignedUrl(publicId: String): String {
+        // Você pode configurar diversas opções, como tempo de expiração, etc.
+        // Por padrão, a URL assinada tem validade de 1 hora.
+        return cloudinary.url()
+            .secure(true) // Garante que a URL seja HTTPS
+            .signed(true) // Gera a assinatura criptográfica (a parte mais importante)
+            .generate(publicId)
+    }
     }

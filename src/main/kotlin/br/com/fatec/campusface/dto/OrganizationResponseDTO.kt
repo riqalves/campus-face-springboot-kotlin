@@ -7,7 +7,7 @@ data class OrganizationResponseDTO(
     val id: String,
     val name: String,
     val description: String,
-    val admins: List<User>,
-    val validators: List<User>,
-    val members: List<User>
+    val admins: List<UserDTO>,
+    val validators: List<UserDTO>,
+    val members: List<UserDTO>
 )
