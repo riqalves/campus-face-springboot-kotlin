@@ -11,6 +11,10 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import br.com.fatec.campusface.service.CloudinaryService
+import br.com.fatec.campusface.dto.GenerateCodeRequest
+import br.com.fatec.campusface.dto.GeneratedCodeResponse
+import br.com.fatec.campusface.dto.ValidateCodeRequest
+import br.com.fatec.campusface.service.AuthCodeService
 
 // Adicione esta anotação no nível da classe para proteger todos os endpoints dentro dela
 @SecurityRequirement(name = "bearerAuth")
@@ -19,7 +23,8 @@ import br.com.fatec.campusface.service.CloudinaryService
 class ValidationController(
     private val userService: UserService,
     private val facePlusPlusService: FacePlusPlusService,
-    private val cloudinaryService: CloudinaryService
+    private val cloudinaryService: CloudinaryService,
+    private val authCodeService: AuthCodeService
 ) {
 
     @PreAuthorize("hasRole('VALIDATOR')")
@@ -76,6 +81,40 @@ class ValidationController(
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 ApiResponse(success = false, message = "Ocorreu um erro interno durante a validação.", data = null)
             )
+        }
+    }
+
+
+    /**
+    * Endpoint para um MEMBRO solicitar a geração de um QR Code.
+    */
+    @PostMapping("/qr-code/generate")
+    @PreAuthorize("hasRole('MEMBER')")
+    fun generateQrCode(@RequestBody request: GenerateCodeRequest): ResponseEntity<ApiResponse<GeneratedCodeResponse>> {
+        // TODO: Adicionar verificação de segurança para garantir que o usuário logado
+        // só pode gerar códigos para seu próprio orgMemberId.
+        return try {
+            val authCode = authCodeService.generateCode(request.orgMemberId)
+            val response = GeneratedCodeResponse(authCode.code, authCode.expirationTime)
+            ResponseEntity.ok(ApiResponse(success = true, message = "Código gerado com sucesso.", data = response))
+        } catch (e: Exception) {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse(success = false, message = e.message, data = null))
+        }
+    }
+
+    /**
+     * Endpoint para um VALIDATOR verificar um QR Code escaneado.
+     */
+    @PostMapping("/qr-code")
+    @PreAuthorize("hasRole('VALIDATOR')")
+    fun validateQrCode(@RequestBody request: ValidateCodeRequest): ResponseEntity<ApiResponse<Any>> {
+        return try {
+            val validatedMember = authCodeService.validateCode(request.code)
+            ResponseEntity.ok(ApiResponse(success = true, message = "Validação bem-sucedida!", data = validatedMember))
+        } catch (e: Exception) {
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse(success = false, message = e.message, data = null))
         }
     }
 }
