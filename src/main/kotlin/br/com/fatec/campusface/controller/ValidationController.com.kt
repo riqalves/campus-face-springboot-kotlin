@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import br.com.fatec.campusface.service.CloudinaryService
 
 // Adicione esta anotação no nível da classe para proteger todos os endpoints dentro dela
 @SecurityRequirement(name = "bearerAuth")
@@ -17,7 +18,8 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/api/validate")
 class ValidationController(
     private val userService: UserService,
-    private val facePlusPlusService: FacePlusPlusService
+    private val facePlusPlusService: FacePlusPlusService,
+    private val cloudinaryService: CloudinaryService
 ) {
 
     @PreAuthorize("hasRole('VALIDATOR')")
@@ -39,10 +41,12 @@ class ValidationController(
                     ApiResponse(success = false, message = "Usuário a ser validado não encontrado.", data = null)
                 )
 
-            val referenceImageUrl = userToValidate.faceImageId
+            val publicId = userToValidate.faceImageId
                 ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                     ApiResponse(success = false, message = "Usuário não possui uma imagem de referência cadastrada.", data = null)
                 )
+
+            val referenceImageUrl = cloudinaryService.generateSignedUrl(publicId)
 
             val isMatch = facePlusPlusService.facesMatch(referenceImageUrl, image)
 
@@ -67,7 +71,7 @@ class ValidationController(
             }
 
         } catch (e: Exception) {
-            println("ERRO na validação facial com AWS: ${e.message}")
+            println("ERRO na validação facial: ${e.message}")
             e.printStackTrace()
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 ApiResponse(success = false, message = "Ocorreu um erro interno durante a validação.", data = null)

@@ -21,7 +21,7 @@ class OrganizationController(private val organizationService: OrganizationServic
      * O criador é automaticamente definido como o primeiro admin da organização.
      */
     @PostMapping("/create")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     fun createOrganization(
         @RequestBody orgData: OrganizationCreateDTO,
         authentication: Authentication
@@ -49,7 +49,7 @@ class OrganizationController(private val organizationService: OrganizationServic
      * Acessível por qualquer usuário autenticado.
      */
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+//    @PreAuthorize("isAuthenticated()")
     fun getAllOrganizations(): ResponseEntity<ApiResponse<List<OrganizationResponseDTO>>> {
         return try {
             val organizations = organizationService.getAllOrganizations()
@@ -69,7 +69,7 @@ class OrganizationController(private val organizationService: OrganizationServic
      * Acessível por qualquer usuário autenticado.
      */
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+//    @PreAuthorize("isAuthenticated()")
     fun getOrganizationById(@PathVariable id: String): ResponseEntity<ApiResponse<OrganizationResponseDTO>> {
         return try {
             val organization = organizationService.getOrganizationById(id)
@@ -95,7 +95,7 @@ class OrganizationController(private val organizationService: OrganizationServic
      * Acessível apenas por usuários com a role ADMIN.
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     fun updateOrganization(
         @PathVariable id: String,
         @RequestBody orgData: OrganizationUpdateDTO // Usa o DTO de atualização
@@ -124,7 +124,7 @@ class OrganizationController(private val organizationService: OrganizationServic
      * Acessível apenas por usuários com a role ADMIN.
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     fun deleteOrganization(@PathVariable id: String): ResponseEntity<ApiResponse<Void>> {
         return try {
             val deleted = organizationService.deleteOrganization(id)

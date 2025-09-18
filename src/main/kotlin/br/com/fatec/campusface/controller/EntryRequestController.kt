@@ -166,14 +166,8 @@ class EntryRequestController(
     ): ResponseEntity<ApiResponse<Any>>  {
         return try {
 
-            val user = userService.getUserById(requestId)
             val entryRequestWithId = entryRequest.copy(id = requestId)
-            val entryRequestDTO = EntryRequestDTO(
-                id = requestId,
-                user = user,
-                organizationId = entryRequest.organizationId,
-                status = "DENIED",
-            )
+
             val request = entryRequestService.rejectRequest(entryRequestWithId)
             ApiResponse("Pedido rejeitado com sucesso", true, request)
             ResponseEntity.status(HttpStatus.CREATED)

@@ -11,7 +11,8 @@ import java.io.IOException
 
 @Service
 class FacePlusPlusService(
-    private val httpClient: OkHttpClient
+    private val httpClient: OkHttpClient,
+    private val imageProcessingService: ImageProcessingService
 ) {
     @Value("\${faceplusplus.api.key}")
     private lateinit var apiKey: String
@@ -23,22 +24,29 @@ class FacePlusPlusService(
     private val confidenceThreshold = 90.0
 
     fun facesMatch(referenceImageUrl: String?, newImageFile: MultipartFile): Boolean {
+        if (referenceImageUrl.isNullOrBlank()) {
+            println("ERRO - A URL da imagem de referência está vazia.")
+            return false
+        }
+
         return try {
-            val referenceImageBytes = downloadImageFromUrl(referenceImageUrl!!)
+            val referenceImageBytes = downloadImageFromUrl(referenceImageUrl)
+
+            val processedNewImageBytes = imageProcessingService.processImageForApi(newImageFile)
 
             val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("api_key", apiKey)
                 .addFormDataPart("api_secret", apiSecret)
                 .addFormDataPart(
-                    "image_file1",
+                    "image_file1", // Imagem de referência já otimizada
                     "reference.jpg",
                     referenceImageBytes.toRequestBody("image/jpeg".toMediaType())
                 )
                 .addFormDataPart(
-                    "image_file2",
-                    newImageFile.originalFilename,
-                    newImageFile.bytes.toRequestBody(newImageFile.contentType?.toMediaType())
+                    "image_file2", // Nova imagem AGORA otimizada
+                    "new_image.jpg",
+                    processedNewImageBytes.toRequestBody("image/jpeg".toMediaType())
                 )
                 .build()
 

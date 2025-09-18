@@ -5,12 +5,14 @@ import br.com.fatec.campusface.models.EntryRequest
 import br.com.fatec.campusface.models.OrganizationMember
 import br.com.fatec.campusface.repository.EntryRequestRepository
 import br.com.fatec.campusface.repository.OrganizationMemberRepository
+import br.com.fatec.campusface.repository.OrganizationRepository
 import org.springframework.stereotype.Service
 
 @Service
 class EntryRequestService(
     private val entryRequestRepository: EntryRequestRepository,
     private val organizationMemberRepository: OrganizationMemberRepository,
+    private val organizationRepository: OrganizationRepository,
     private val userService: UserService
 ) {
 
@@ -20,6 +22,9 @@ class EntryRequestService(
      * O status inicial é "WAITING"
      */
     fun createRequest(entryRequest: EntryRequest): EntryRequestDTO {
+        if (entryRequest.userId == null) {
+            throw (IllegalArgumentException("User ID is required"))
+        }
         return entryRequestRepository.save(entryRequest)
     }
 
@@ -36,27 +41,34 @@ class EntryRequestService(
      * Aprova um pedido de entrada, criando o OrganizationMember
      */
     fun approveRequest(entryRequest: EntryRequest): OrganizationMember? {
-        println("DEBUG APPROVE REQUEST: $entryRequest" )
         val request = entryRequestRepository.findById(entryRequest.id)
             ?: throw IllegalArgumentException("Pedido de entrada não encontrado")
 
         if (request.status != "WAITING") {
-            throw IllegalStateException("Solicitação já foi processada")
+            throw IllegalStateException("A solicitação já foi processada")
         }
 
-        // Atualiza status do pedido para "APPROVED"
-        val updated = entryRequestRepository.updateStatus(entryRequest)
-        println("DEBUG UPDATE: $updated ")
-        val user = updated.user?.id?.let { userService.getUserById(it) }
-        // Cria o membro na organização
-        val member = OrganizationMember(
+        // 1. Atualiza o status do pedido para "APPROVED"
+        entryRequestRepository.updateStatus(entryRequest)
+
+        // 2. Busca os detalhes do usuário para obter o public_id da imagem
+        val user = userService.getUserById(entryRequest.userId!!)
+            ?: throw IllegalStateException("Usuário associado ao pedido não encontrado")
+
+        // 3. Cria o novo registro de OrganizationMember
+        val newMember = OrganizationMember(
             userId =  entryRequest.userId,
             organizationId = request.organizationId,
-            faceImageId = user!!.faceImageId
+            faceImageId = user.faceImageId
         )
-        println("DEBUG ENTRYREQUESTSERVICE: $member")
+        val savedMember = organizationMemberRepository.save(newMember)
 
-        return organizationMemberRepository.save(member)
+        // 4. Adiciona o ID do novo membro à lista de 'memberIds' da organização
+        organizationRepository.addMemberToOrganization(request.organizationId, savedMember.id)
+
+        println("DEBUG - Membro ${savedMember.id} adicionado à organização ${request.organizationId}")
+
+        return savedMember
     }
 
     /**

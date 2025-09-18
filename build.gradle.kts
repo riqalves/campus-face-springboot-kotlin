@@ -36,6 +36,8 @@ dependencies {
 
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 
+	implementation("net.coobird:thumbnailator:0.4.20")
+
 	implementation("software.amazon.awssdk:rekognition:2.26.10") {
 		exclude(group = "commons-logging", module = "commons-logging")
 	}

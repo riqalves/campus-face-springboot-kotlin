@@ -12,7 +12,18 @@ class CloudinaryService(
 
 
     fun upload(file: MultipartFile): Map<String, String> {
-        val result = cloudinary.uploader().upload(file.bytes, ObjectUtils.emptyMap())
+        // Esta chamada usa o array de bytes do MultipartFile
+        return upload(file.bytes)
+    }
+
+    /**
+     * Versão 2 (NOVA): Faz o upload a partir de um ByteArray.
+     * É esta versão que o seu UserService irá chamar com a imagem processada.
+     */
+    fun upload(imageBytes: ByteArray): Map<String, String> {
+        // O uploader do Cloudinary aceita um ByteArray diretamente.
+        val result = cloudinary.uploader().upload(imageBytes, ObjectUtils.emptyMap())
+
         return mapOf(
             "secure_url" to (result["secure_url"] as String),
             "public_id" to (result["public_id"] as String)

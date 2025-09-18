@@ -2,6 +2,7 @@ package br.com.fatec.campusface.repository
 
 import br.com.fatec.campusface.models.Organization
 import br.com.fatec.campusface.models.OrganizationMember
+import com.google.cloud.firestore.FieldValue
 import com.google.cloud.firestore.Firestore
 import org.springframework.stereotype.Repository
 
@@ -49,6 +50,13 @@ class OrganizationRepository(private val firestore: Firestore) {
             return organization
         }
         return null
+    }
+
+    fun addMemberToOrganization(organizationId: String, memberId: String) {
+        val docRef = collection.document(organizationId)
+        // FieldValue.arrayUnion() adiciona um elemento a um campo de array
+        // apenas se o elemento ainda não estiver presente.
+        docRef.update("memberIds", FieldValue.arrayUnion(memberId))
     }
 
     fun delete(id: String): Boolean {

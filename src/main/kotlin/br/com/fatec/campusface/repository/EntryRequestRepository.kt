@@ -20,8 +20,7 @@ class EntryRequestRepository(private val firestore: Firestore) {
     fun save(entryRequest: EntryRequest): EntryRequestDTO {
         val docRef = collection.document() // Firestore gera o ID automático
 
-
-        val user = entryRequest.userId?.let { userService.getUserById(it) }
+        val user = userService.getUserById(entryRequest.userId!!)
         val dto = EntryRequestDTO(
             id = docRef.id,
             user = user,
@@ -96,7 +95,6 @@ class EntryRequestRepository(private val firestore: Firestore) {
                 ?: throw IllegalStateException("Nenhum EntryRequest encontrado para userId=${entryRequest.userId}, organizationId=${entryRequest.organizationId}")
 
             val existingRequest = doc.toObject(EntryRequest::class.java).copy(id = doc.id)
-                ?: throw IllegalStateException("Falha ao converter documento Firestore para EntryRequest (id=${doc.id})")
 
             if (existingRequest.status == entryRequest.status) {
                 throw IllegalStateException("Status já está igual: '${entryRequest.status}' (id=${doc.id})")

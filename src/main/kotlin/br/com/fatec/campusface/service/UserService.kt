@@ -11,7 +11,8 @@ import org.springframework.web.multipart.MultipartFile
 class UserService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val cloudinaryService: CloudinaryService
+    private val cloudinaryService: CloudinaryService,
+    private val imageProcessingService: ImageProcessingService
 ) {
 
     fun createUser(userData: User, imageFile: MultipartFile?): UserDTO {
@@ -22,12 +23,17 @@ class UserService(
         var imagePublicId: String? = null
 
         if (imageFile != null) {
-            validateImage(imageFile)
-            val uploadResult = cloudinaryService.upload(imageFile)
-            imagePublicId = uploadResult["public_id"]
-                ?: throw IllegalStateException("O Public ID não foi retornado pelo Cloudinary após o upload.")
-        }
+            validateImage(imageFile) // Valida o tamanho original para não sobrecarregar o servidor
 
+            // Processa a imagem para um tamanho menor antes de enviar
+            val processedImageBytes = imageProcessingService.processImageBytes(imageFile.bytes)
+
+            // Faz o upload dos bytes otimizados
+            val uploadResult = cloudinaryService.upload(processedImageBytes)
+            imagePublicId = uploadResult["public_id"]
+                ?: throw IllegalStateException("O Public ID não foi retornado pelo Cloudinary.")
+            println("DEBUG (UserService): Upload para Cloudinary bem-sucedido. Public ID: $imagePublicId")
+        }
         val userToSave = userData.copy(
             hashedPassword = passwordEncoder.encode(userData.hashedPassword),
             faceImageId = imagePublicId
@@ -53,7 +59,7 @@ class UserService(
         }
 
         // Validação de tamanho
-        val maxSizeInBytes = 5 * 1024 * 1024 // 5 MB
+        val maxSizeInBytes = 10 * 1024 * 1024 // 10 MB
         if (imageFile.size > maxSizeInBytes) {
             throw IllegalArgumentException("A imagem excede o tamanho máximo de 5MB.")
         }
