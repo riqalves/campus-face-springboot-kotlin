@@ -108,7 +108,8 @@ class OrganizationService(
             email = this.email,
             role = this.role,
             document = this.document,
-            faceImageId = temporaryImageUrl
+            faceImageId = this.faceImageId,
+            faceToken = this.faceToken
         )
     }
 

@@ -4,21 +4,23 @@ import br.com.fatec.campusface.models.User
 
 
 data class UserDTO(
-    val id: String? = null,
+    val id: String,
     val fullName: String,
     val email: String,
-    val document: String,
-    val faceImageId: String?,
-    val role: Role
+    val role: Role,
+    val document: String?,
+    val faceImageId: String?, // URL assinada/temporária
+    val faceToken: String?   // <-- CAMPO ADICIONADO
 ) {
     companion object {
-        fun fromEntity(id: String?, user: User) = UserDTO(
+        fun fromEntity(id: String, user: User) = UserDTO(
             id = id,
             fullName = user.fullName,
             email = user.email,
             document = user.document,
             faceImageId = user.faceImageId ?: "default.png",
-            role = user.role
+            role = user.role,
+            faceToken = user.faceToken
         )
     }
 }

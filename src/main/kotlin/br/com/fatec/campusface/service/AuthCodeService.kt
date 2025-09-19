@@ -67,7 +67,8 @@ class AuthCodeService(
             email = this.email,
             role = this.role,
             document = this.document,
-            faceImageId = this.faceImageId
+            faceImageId = this.faceImageId,
+            faceToken = this.faceToken,
         )
     }
 

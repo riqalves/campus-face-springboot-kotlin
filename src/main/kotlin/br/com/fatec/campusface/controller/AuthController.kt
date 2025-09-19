@@ -72,6 +72,7 @@ class AuthController() {
                 fullName = user.fullName,
                 document = user.document,
                 faceImageId = user.faceImageId,
+                faceToken = user.faceToken
             )
 
             val responseBody = mapOf(

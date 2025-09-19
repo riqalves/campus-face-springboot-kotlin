@@ -100,6 +100,10 @@ class UserService(
 
             val faceToken = facePlusPlusService.detectFaceAndGetToken(imageBytes)
             userRepository.updateFaceToken(user.id, faceToken)
+            // --- SOLUÇÃO AQUI ---
+            // Adiciona uma pausa de 1.1 segundos para respeitar o limite de 1 QPS do Face++
+            println("DEBUG - Pausando por 1.1 segundos para evitar limite de concorrência...")
+            Thread.sleep(1100) // 1100 milissegundo
             facePlusPlusService.addFaceToFaceSet(faceToken, faceSetToken)
             println("DEBUG - Rosto do usuário ${user.id} adicionado ao FaceSet da organização.")
         } catch (e: Exception) {
@@ -134,7 +138,8 @@ class UserService(
             email = this.email,
             role = this.role,
             document = this.document,
-            faceImageId = this.faceImageId
+            faceImageId = this.faceImageId,
+            faceToken = this.faceToken
         )
     }
 
@@ -156,7 +161,8 @@ class UserService(
                 email = userModel.email,
                 role = userModel.role,
                 document = userModel.document,
-                faceImageId = userModel.faceImageId ?: ""
+                faceImageId = userModel.faceImageId ?: "",
+                faceToken = userModel.faceToken,
             )
         }
 
