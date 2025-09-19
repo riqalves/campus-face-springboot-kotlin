@@ -30,10 +30,11 @@ class AuthCodeRepository(private val firestore: Firestore) {
     }
 
     // Invalida todos os códigos antigos de um membro antes de gerar um novo
-    fun invalidatePreviousCodes(orgMemberId: String) {
+    fun invalidatePreviousCodes(userId: String) {
         val batch = firestore.batch()
+        // Alterado para buscar por "userId"
         val query = collection
-            .whereEqualTo("organizationMemberId", orgMemberId)
+            .whereEqualTo("userId", userId)
             .whereEqualTo("valid", true)
             .get().get()
 

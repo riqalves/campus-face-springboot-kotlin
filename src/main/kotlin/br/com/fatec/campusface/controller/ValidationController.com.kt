@@ -19,7 +19,7 @@ import br.com.fatec.campusface.service.AuthCodeService
 // Adicione esta anotação no nível da classe para proteger todos os endpoints dentro dela
 @SecurityRequirement(name = "bearerAuth")
 @RestController
-@RequestMapping("/api/validate")
+@RequestMapping("/validate")
 class ValidationController(
     private val userService: UserService,
     private val facePlusPlusService: FacePlusPlusService,
@@ -93,8 +93,9 @@ class ValidationController(
     fun generateQrCode(@RequestBody request: GenerateCodeRequest): ResponseEntity<ApiResponse<GeneratedCodeResponse>> {
         // TODO: Adicionar verificação de segurança para garantir que o usuário logado
         // só pode gerar códigos para seu próprio orgMemberId.
+        println("DEBUG VALIDATION QR-CODE $request")
         return try {
-            val authCode = authCodeService.generateCode(request.orgMemberId)
+            val authCode = authCodeService.generateCode(request.userId)
             val response = GeneratedCodeResponse(authCode.code, authCode.expirationTime)
             ResponseEntity.ok(ApiResponse(success = true, message = "Código gerado com sucesso.", data = response))
         } catch (e: Exception) {

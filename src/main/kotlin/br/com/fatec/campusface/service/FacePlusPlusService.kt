@@ -21,7 +21,7 @@ class FacePlusPlusService(
     private lateinit var apiSecret: String
 
     private val compareApiUrl = "https://api-us.faceplusplus.com/facepp/v3/compare"
-    private val confidenceThreshold = 90.0
+    private val confidenceThreshold = 85.0
 
     fun facesMatch(referenceImageUrl: String?, newImageFile: MultipartFile): Boolean {
         if (referenceImageUrl.isNullOrBlank()) {

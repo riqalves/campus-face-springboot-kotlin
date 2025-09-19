@@ -5,7 +5,7 @@ import java.time.Instant
 data class AuthCode(
     val id: String = "",
     val code: String = "",
-    val organizationMemberId: String = "",
+    val userId: String = "",
     val expirationTime: Instant = Instant.now(),
-    val isValid: Boolean = true
+    val valid: Boolean = true
 )

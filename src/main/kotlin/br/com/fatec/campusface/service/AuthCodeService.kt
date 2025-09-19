@@ -1,35 +1,33 @@
 package br.com.fatec.campusface.service
 
+import br.com.fatec.campusface.dto.UserDTO
 import br.com.fatec.campusface.models.AuthCode
-import br.com.fatec.campusface.models.OrganizationMember
+import br.com.fatec.campusface.models.User
 import br.com.fatec.campusface.repository.AuthCodeRepository
-import br.com.fatec.campusface.repository.OrganizationMemberRepository
+import br.com.fatec.campusface.repository.UserRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import kotlin.random.Random
 
 @Service
 class AuthCodeService(
     private val authCodeRepository: AuthCodeRepository,
-    private val orgMemberRepository: OrganizationMemberRepository
+    private val userRepository: UserRepository
 ) {
 
     /**
      * Gera um novo código de uso único para um membro da organização.
      */
-    fun generateCode(orgMemberId: String): AuthCode {
-        authCodeRepository.invalidatePreviousCodes(orgMemberId)
+    fun generateCode(userId: String): AuthCode {
+        authCodeRepository.invalidatePreviousCodes(userId)
 
-        //gerar código aletorio (6 digitos)
         val code = (100000..999999).random().toString()
 
-        // tempo pra expirar (5 minutos)
         val expirationTime = Instant.now().plus(5, ChronoUnit.MINUTES)
 
         val newAuthCode = AuthCode(
             code = code,
-            organizationMemberId = orgMemberId,
+            userId = userId,
             expirationTime = expirationTime
         )
         return authCodeRepository.save(newAuthCode)
@@ -39,23 +37,33 @@ class AuthCodeService(
      * Valida um código escaneado.
      * Retorna o OrganizationMember se o código for válido, ou lança uma exceção se for inválido.
      */
-    fun validateCode(code: String): OrganizationMember {
-        // 1. Busca o código que seja VÁLIDO no banco de dados
+    fun validateCode(code: String): UserDTO {
         val authCode = authCodeRepository.findValidByCode(code)
             ?: throw IllegalArgumentException("Código inválido, expirado ou já utilizado.")
 
-        // 2. Com a nova consulta, não precisamos mais verificar 'isValid' aqui.
-        //    Só precisamos verificar a expiração.
         if (Instant.now().isAfter(authCode.expirationTime)) {
-            authCodeRepository.invalidateCode(authCode.id) // Boa prática invalidar mesmo assim
+            authCodeRepository.invalidateCode(authCode.id)
             throw IllegalStateException("Este código expirou.")
         }
 
-        // 3. Se chegou até aqui, o código é válido. Invalida para que não possa ser usado de novo.
         authCodeRepository.invalidateCode(authCode.id)
 
-        // 4. Retorna os detalhes do membro
-        return orgMemberRepository.findById(authCode.organizationMemberId)
-            ?: throw IllegalStateException("Membro da organização associado a este código não foi encontrado.")
+        val user = userRepository.findById(authCode.userId)
+            ?: throw IllegalStateException("Usuário associado a este código não foi encontrado.")
+
+        return user.toDTO()
+    }
+    /**
+     * Função de extensão privada para converter um User em um UserDTO.
+     */
+    private fun User.toDTO(): UserDTO {
+        return UserDTO(
+            id = this.id,
+            fullName = this.fullName,
+            email = this.email,
+            role = this.role,
+            document = this.document,
+            faceImageId = this.faceImageId
+        )
     }
 }
