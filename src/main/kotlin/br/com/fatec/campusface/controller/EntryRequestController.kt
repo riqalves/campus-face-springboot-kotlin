@@ -110,8 +110,7 @@ class EntryRequestController(
     @PostMapping("/{requestId}/approve")
     fun approveRequest(
         @PathVariable requestId: String,
-        @RequestBody entryRequest: EntryRequest,
-        authentication: Authentication
+        @RequestBody entryRequest: EntryRequest
     ): ResponseEntity<ApiResponse<Any>> {
         return try {
             println("DEBUG - EntryRequestController $entryRequest")
@@ -160,31 +159,26 @@ class EntryRequestController(
 
 
     @PostMapping("/{requestId}/reject")
-    fun rejectRequest(
-        @PathVariable requestId: String,
-        @RequestBody entryRequest: EntryRequest
-    ): ResponseEntity<ApiResponse<Any>>  {
+// @PreAuthorize("hasRole('ADMIN')")
+    fun rejectRequest(@PathVariable requestId: String): ResponseEntity<ApiResponse<Void>> {
         return try {
 
-            val entryRequestWithId = entryRequest.copy(id = requestId)
+            entryRequestService.rejectRequest(requestId)
 
-            val request = entryRequestService.rejectRequest(entryRequestWithId)
-            ApiResponse("Pedido rejeitado com sucesso", true, request)
-            ResponseEntity.status(HttpStatus.CREATED)
-                .body(
-                    ApiResponse(
-                        success = true,
-                        message = "Solicitação processada",
-                        data = request
-                    )
+            ResponseEntity.ok(
+                ApiResponse(
+                    success = true,
+                    message = "Solicitação rejeitada com sucesso.",
+                    data = null
                 )
+            )
         } catch (e: Exception) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(
                     ApiResponse(
                         success = false,
                         message = "Erro ao rejeitar pedido: ${e.message}",
-                        data = ""
+                        data = null
                     )
                 )
         }

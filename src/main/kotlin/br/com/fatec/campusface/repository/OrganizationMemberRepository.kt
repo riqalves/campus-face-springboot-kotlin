@@ -68,4 +68,8 @@ class OrganizationMemberRepository(private val firestore: Firestore) {
     fun updateFaceImageId(id: String, newFaceImagePublicId: String) {
         collection.document(id).update("faceImageId", newFaceImagePublicId).get()
     }
+
+    fun findByUserId(userId: String): List<OrganizationMember> {
+        return collection.whereEqualTo("userId", userId).get().get().toObjects(OrganizationMember::class.java)
+    }
 }

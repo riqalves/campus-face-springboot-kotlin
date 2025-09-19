@@ -2,12 +2,17 @@ package br.com.fatec.campusface.service
 
 import com.cloudinary.Cloudinary
 import com.cloudinary.utils.ObjectUtils
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
+import java.io.IOException
+
 
 @Service
 class CloudinaryService(
-    private val cloudinary: Cloudinary
+    private val cloudinary: Cloudinary,
+    private val httpClient: OkHttpClient
 ) {
 
 
@@ -58,4 +63,22 @@ class CloudinaryService(
             .signed(true) // Gera a assinatura criptográfica (a parte mais importante)
             .generate(publicId)
     }
+
+    /**
+     * NOVO: Baixa o conteúdo de uma imagem a partir de uma URL.
+     * @param url A URL completa (ex: a URL assinada do Cloudinary).
+     * @return Um ByteArray com os dados da imagem.
+     */
+    fun downloadImageFromUrl(url: String): ByteArray {
+        println("DEBUG - Baixando imagem de: $url")
+        val request = Request.Builder().url(url).build()
+
+        httpClient.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw IOException("Falha ao baixar imagem do Cloudinary. Código: ${response.code}, URL: $url")
+            }
+            // Retorna os bytes do corpo da resposta
+            return response.body!!.bytes()
+        }
     }
+}

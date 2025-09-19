@@ -52,13 +52,6 @@ class OrganizationRepository(private val firestore: Firestore) {
         return null
     }
 
-    fun addMemberToOrganization(organizationId: String, memberId: String) {
-        val docRef = collection.document(organizationId)
-        // FieldValue.arrayUnion() adiciona um elemento a um campo de array
-        // apenas se o elemento ainda não estiver presente.
-        docRef.update("memberIds", FieldValue.arrayUnion(memberId))
-    }
-
     fun delete(id: String): Boolean {
         val docRef = collection.document(id)
         val doc = docRef.get().get()
@@ -68,5 +61,27 @@ class OrganizationRepository(private val firestore: Firestore) {
         } else {
             false
         }
+    }
+
+    fun updateFaceSetToken(organizationId: String, faceSetToken: String) {
+        collection.document(organizationId).update("faceSetToken", faceSetToken).get()
+    }
+
+    fun addMemberToOrganization(organizationId: String, memberId: String) {
+        collection.document(organizationId).update("memberIds", FieldValue.arrayUnion(memberId))
+    }
+
+    /**
+     * NOVO: Adiciona o ID de um novo validador à lista 'validatorIds' de uma organização.
+     */
+    fun addValidatorToOrganization(organizationId: String, validatorId: String) {
+        collection.document(organizationId).update("validatorIds", FieldValue.arrayUnion(validatorId))
+    }
+
+    /**
+     * NOVO: Adiciona o ID de um novo admin à lista 'adminIds' de uma organização.
+     */
+    fun addAdminToOrganization(organizationId: String, adminId: String) {
+        collection.document(organizationId).update("adminIds", FieldValue.arrayUnion(adminId))
     }
 }

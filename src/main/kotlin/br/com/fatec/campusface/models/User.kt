@@ -13,7 +13,8 @@ data class User(
     val hashedPassword: String = "", // será criptografada
     val document: String = "",
     val faceImageId: String? = "",
-    val role: Role = Role.MEMBER
+    val role: Role = Role.MEMBER,
+    val faceToken: String? = null
 ): UserDetails {
     @Exclude
     override fun getAuthorities(): Collection<GrantedAuthority> {

@@ -128,7 +128,7 @@ class AuthController() {
             ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse(
                     success = true,
-                    message = "Usuário registrado com sucesso!",
+                    message = "Usuário registrado e associado à organização com sucesso!",
                     data = createdUserDto
                 )
             )

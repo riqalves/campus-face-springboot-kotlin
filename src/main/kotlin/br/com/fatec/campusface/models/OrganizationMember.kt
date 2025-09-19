@@ -4,5 +4,10 @@ data class OrganizationMember(
     val id: String = "",
     val organizationId: String = "",
     val userId: String? = "",
-    val faceImageId: String? = ""
+    // Este campo agora armazena o public_id da imagem no Cloudinary (a fonte da verdade)
+    val faceImageId: String? = "",
+
+    // CAMPO ADICIONADO: Armazena o token do rosto deste membro no Face++.
+    // Este token é usado para identificar o match na API de busca.
+    val faceToken: String? = null
 )

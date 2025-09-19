@@ -4,15 +4,19 @@ import br.com.fatec.campusface.dto.UserDTO
 import br.com.fatec.campusface.models.AuthCode
 import br.com.fatec.campusface.models.User
 import br.com.fatec.campusface.repository.AuthCodeRepository
+import br.com.fatec.campusface.repository.OrganizationRepository
 import br.com.fatec.campusface.repository.UserRepository
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 @Service
 class AuthCodeService(
     private val authCodeRepository: AuthCodeRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val organizationRepository: OrganizationRepository,
+    private val facePlusPlusService: FacePlusPlusService
 ) {
 
     /**
@@ -65,5 +69,25 @@ class AuthCodeService(
             document = this.document,
             faceImageId = this.faceImageId
         )
+    }
+
+    fun identifyUserByFace(organizationId: String, imageFile: MultipartFile): UserDTO? {
+        // 1. Busca a organização para obter o faceSetToken
+        val organization = organizationRepository.findById(organizationId)
+            ?: throw IllegalStateException("Organização não encontrada.")
+        val faceSetToken = organization.faceSetToken
+            ?: throw IllegalStateException("Organização não configurada para reconhecimento facial.")
+
+        // 2. Busca o rosto na coleção
+        val matchedFaceToken = facePlusPlusService.searchFaceInFaceSet(faceSetToken, imageFile)
+            ?: return null // Retorna nulo se não houver match
+
+        // 3. Usa o face_token para encontrar o usuário
+        val user = userRepository.findByFaceToken(matchedFaceToken)
+            ?: throw IllegalStateException("Usuário correspondente ao rosto não encontrado no banco de dados.")
+
+        // 4. Retorna o DTO do usuário encontrado
+        // (Você precisaria injetar o CloudinaryService aqui ou criar um conversor de DTO)
+        return user.toDTO() // Supondo que você tenha um método de conversão
     }
 }

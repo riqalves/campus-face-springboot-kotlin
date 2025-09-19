@@ -1,8 +1,13 @@
 package br.com.fatec.campusface.service
 
 import br.com.fatec.campusface.dto.UserDTO
+import br.com.fatec.campusface.models.OrganizationMember
+import br.com.fatec.campusface.models.Role
 import br.com.fatec.campusface.models.User
+import br.com.fatec.campusface.repository.OrganizationMemberRepository
+import br.com.fatec.campusface.repository.OrganizationRepository
 import br.com.fatec.campusface.repository.UserRepository
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
@@ -12,44 +17,98 @@ class UserService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val cloudinaryService: CloudinaryService,
-    private val imageProcessingService: ImageProcessingService
+    private val imageProcessingService: ImageProcessingService,
+    private val organizationRepository: OrganizationRepository,
+    private val organizationMemberRepository: OrganizationMemberRepository,
+    private val facePlusPlusService: FacePlusPlusService
 ) {
 
+    @Value("\${default.organization.id}")
+    private lateinit var defaultOrganizationId: String
+
     fun createUser(userData: User, imageFile: MultipartFile?): UserDTO {
+        // --- 1. Criação do Usuário (lógica existente) ---
         if (userRepository.findByEmail(userData.email) != null) {
             throw IllegalArgumentException("Email já cadastrado.")
         }
 
         var imagePublicId: String? = null
-
         if (imageFile != null) {
-            validateImage(imageFile) // Valida o tamanho original para não sobrecarregar o servidor
-
-            // Processa a imagem para um tamanho menor antes de enviar
-            val processedImageBytes = imageProcessingService.processImageBytes(imageFile.bytes)
-
-            // Faz o upload dos bytes otimizados
+            val processedImageBytes = imageProcessingService.processImageForApi(imageFile)
             val uploadResult = cloudinaryService.upload(processedImageBytes)
             imagePublicId = uploadResult["public_id"]
-                ?: throw IllegalStateException("O Public ID não foi retornado pelo Cloudinary.")
-            println("DEBUG (UserService): Upload para Cloudinary bem-sucedido. Public ID: $imagePublicId")
+                ?: throw IllegalStateException("Public ID não foi retornado pelo Cloudinary.")
         }
+
         val userToSave = userData.copy(
             hashedPassword = passwordEncoder.encode(userData.hashedPassword),
             faceImageId = imagePublicId
         )
-
         val savedUser = userRepository.save(userToSave)
 
-        return UserDTO(
-            id = savedUser.id,
-            fullName = savedUser.fullName,
-            email = savedUser.email,
-            role = savedUser.role,
-            document = savedUser.document,
-            faceImageId = savedUser.faceImageId // Se for nulo, o DTO também terá o campo nulo
-        )
+        // --- 2. Associação à Organização (NOVA LÓGICA) ---
+        // Se o usuário for MEMBER ou VALIDATOR, associa à organização padrão
+        if (savedUser.role == Role.MEMBER || savedUser.role == Role.VALIDATOR) {
+            onboardUserToOrganization(savedUser, defaultOrganizationId)
+        }
+
+        // --- 3. Retorno do DTO (lógica existente) ---
+        return savedUser.toDTO() // Usando uma função de extensão para converter
     }
+
+    /**
+     * Função auxiliar que contém a lógica de onboarding que antes estava no EntryRequestService.
+     */
+    private fun onboardUserToOrganization(user: User, organizationId: String) {
+        println("DEBUG - Associando usuário ${user.id} à organização $organizationId")
+
+        // a. Cria o registro OrganizationMember
+        val newMember = OrganizationMember(
+            userId = user.id,
+            organizationId = organizationId,
+            faceImageId = user.faceImageId
+        )
+        organizationMemberRepository.save(newMember)
+
+        // b. Adiciona o usuário à lista correta na Organização
+        when (user.role) {
+            Role.MEMBER -> {
+                organizationRepository.addMemberToOrganization(organizationId, user.id)
+                // c. Executa o fluxo de registro facial
+                registerFaceForUser(user, organizationId)
+            }
+            Role.VALIDATOR -> {
+                organizationRepository.addValidatorToOrganization(organizationId, user.id)
+            }
+            else -> {} // Não faz nada para ADMINs
+        }
+    }
+
+    /**
+     * Função auxiliar para o fluxo de registro facial.
+     */
+    private fun registerFaceForUser(user: User, organizationId: String) {
+        try {
+            val organization = organizationRepository.findById(organizationId)
+                ?: throw IllegalStateException("Organização padrão não encontrada.")
+
+            val userImagePublicId = user.faceImageId ?: throw IllegalStateException("Membro não tem imagem de referência.")
+            val faceSetToken = organization.faceSetToken ?: throw IllegalStateException("Organização não configurada para reconhecimento facial.")
+
+            val imageUrl = cloudinaryService.generateSignedUrl(userImagePublicId)
+            val imageBytes = cloudinaryService.downloadImageFromUrl(imageUrl)
+
+            val faceToken = facePlusPlusService.detectFaceAndGetToken(imageBytes)
+            userRepository.updateFaceToken(user.id, faceToken)
+            facePlusPlusService.addFaceToFaceSet(faceToken, faceSetToken)
+            println("DEBUG - Rosto do usuário ${user.id} adicionado ao FaceSet da organização.")
+        } catch (e: Exception) {
+            // Loga o erro mas não impede a criação do usuário
+            println("AVISO - Falha no processo de registro facial para o usuário ${user.id}: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
 
     private fun validateImage(imageFile: MultipartFile) {
         // Validação de tipo de arquivo
@@ -63,6 +122,20 @@ class UserService(
         if (imageFile.size > maxSizeInBytes) {
             throw IllegalArgumentException("A imagem excede o tamanho máximo de 5MB.")
         }
+    }
+
+    private fun User.toDTO(): UserDTO {
+        val temporaryImageUrl = this.faceImageId?.let { publicId ->
+            cloudinaryService.generateSignedUrl(publicId)
+        }
+        return UserDTO(
+            id = this.id,
+            fullName = this.fullName,
+            email = this.email,
+            role = this.role,
+            document = this.document,
+            faceImageId = this.faceImageId
+        )
     }
 
     fun validateEmail(email: String): Boolean {

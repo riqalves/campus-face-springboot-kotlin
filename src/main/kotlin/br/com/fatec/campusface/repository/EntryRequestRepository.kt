@@ -80,42 +80,9 @@ class EntryRequestRepository(private val firestore: Firestore) {
         }
     }
 
-    fun updateStatus(entryRequest: EntryRequest): EntryRequestDTO {
-        return try {
-
-            println("DEBUG UPDATE ENTRYREQUEST REPOSITORY: $entryRequest")
-            val user = entryRequest.userId.let { userService.getUserById(it!!) }
-            val snapshot = collection
-                .whereEqualTo("userId", entryRequest.userId)
-                .whereEqualTo("organizationId", entryRequest.organizationId)
-                .get()
-                .get()
-
-            val doc = snapshot.documents.firstOrNull()
-                ?: throw IllegalStateException("Nenhum EntryRequest encontrado para userId=${entryRequest.userId}, organizationId=${entryRequest.organizationId}")
-
-            val existingRequest = doc.toObject(EntryRequest::class.java).copy(id = doc.id)
-
-            if (existingRequest.status == entryRequest.status) {
-                throw IllegalStateException("Status já está igual: '${entryRequest.status}' (id=${doc.id})")
-            }
-
-            val updated = existingRequest.copy(status = entryRequest.status)
-            doc.reference.set(updated).get()
-
-            val dto = EntryRequestDTO(
-                id = updated.id,
-                user = user,
-                organizationId = updated.organizationId,
-                status = updated.status
-            )
-
-            println("DEBUG repository - EntryRequest atualizado: $dto")
-            dto
-        } catch (e: Exception) {
-            println("ERRO repository - Falha ao atualizar EntryRequest: ${e.message}")
-            throw e // relança para subir a exceção
-        }
+    fun updateStatus(id: String, newStatus: String) {
+        // A única responsabilidade deste método é encontrar o documento pelo ID e atualizar seu status.
+        collection.document(id).update("status", newStatus).get()
     }
 
 

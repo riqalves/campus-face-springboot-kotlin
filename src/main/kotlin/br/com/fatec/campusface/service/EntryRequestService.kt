@@ -3,6 +3,8 @@ package br.com.fatec.campusface.service
 import br.com.fatec.campusface.dto.EntryRequestDTO
 import br.com.fatec.campusface.models.EntryRequest
 import br.com.fatec.campusface.models.OrganizationMember
+import br.com.fatec.campusface.models.Role
+import br.com.fatec.campusface.repository.UserRepository
 import br.com.fatec.campusface.repository.EntryRequestRepository
 import br.com.fatec.campusface.repository.OrganizationMemberRepository
 import br.com.fatec.campusface.repository.OrganizationRepository
@@ -13,7 +15,10 @@ class EntryRequestService(
     private val entryRequestRepository: EntryRequestRepository,
     private val organizationMemberRepository: OrganizationMemberRepository,
     private val organizationRepository: OrganizationRepository,
-    private val userService: UserService
+    private val userService: UserService,
+    private val userRepository: UserRepository,
+    private val facePlusPlusService: FacePlusPlusService,
+    private val cloudinaryService: CloudinaryService
 ) {
 
 
@@ -41,32 +46,62 @@ class EntryRequestService(
      * Aprova um pedido de entrada, criando o OrganizationMember
      */
     fun approveRequest(entryRequest: EntryRequest): OrganizationMember? {
-        val request = entryRequestRepository.findById(entryRequest.id)
+        val fullRequest = entryRequestRepository.findById(entryRequest.id)
             ?: throw IllegalArgumentException("Pedido de entrada não encontrado")
 
-        if (request.status != "WAITING") {
+        if (fullRequest.status != "WAITING") {
             throw IllegalStateException("A solicitação já foi processada")
         }
 
-        // 1. Atualiza o status do pedido para "APPROVED"
-        entryRequestRepository.updateStatus(entryRequest)
+        val user = userRepository.findById(fullRequest.user?.id!!)
+            ?: throw IllegalStateException("Usuário não encontrado.")
 
-        // 2. Busca os detalhes do usuário para obter o public_id da imagem
-        val user = userService.getUserById(entryRequest.userId!!)
-            ?: throw IllegalStateException("Usuário associado ao pedido não encontrado")
+        val organization = organizationRepository.findById(fullRequest.organizationId)
+            ?: throw IllegalStateException("Organização não encontrada.")
 
-        // 3. Cria o novo registro de OrganizationMember
+        // Cria o registro de OrganizationMember (continua útil para rastrear a afiliação)
         val newMember = OrganizationMember(
-            userId =  entryRequest.userId,
-            organizationId = request.organizationId,
+            userId = fullRequest.user.id,
+            organizationId = fullRequest.organizationId,
             faceImageId = user.faceImageId
         )
         val savedMember = organizationMemberRepository.save(newMember)
 
-        // 4. Adiciona o ID do novo membro à lista de 'memberIds' da organização
-        organizationRepository.addMemberToOrganization(request.organizationId, savedMember.id)
+        // LÓGICA CONDICIONAL BASEADA NA ROLE DO USUÁRIO
+        when (user.role) {
+            Role.MEMBER -> {
+                println("DEBUG - Aprovando um MEMBER.")
+                // CORREÇÃO: Passa o ID do USUÁRIO, não do OrganizationMember
+                organizationRepository.addMemberToOrganization(fullRequest.organizationId, user.id)
 
-        println("DEBUG - Membro ${savedMember.id} adicionado à organização ${request.organizationId}")
+                // ... (lógica de registro facial, que já usa o 'user' e está correta)
+                val userImagePublicId = user.faceImageId ?: throw IllegalStateException("Membro não tem imagem de referência.")
+                val faceSetToken = organization.faceSetToken ?: throw IllegalStateException("Organização não configurada para reconhecimento facial.")
+                val imageBytes = cloudinaryService.downloadImageFromUrl(cloudinaryService.generateSignedUrl(userImagePublicId))
+                val faceToken = facePlusPlusService.detectFaceAndGetToken(imageBytes)
+                userRepository.updateFaceToken(user.id, faceToken)
+                println("DEBUG - Pausando por 1.1 segundos para evitar limite de concorrência...")
+                Thread.sleep(1100) // 1100 milissegundos
+                println("DEBUG - Tentando adicionar faceToken: [$faceToken] ao faceSetToken: [$faceSetToken]")
+                facePlusPlusService.addFaceToFaceSet(faceToken, faceSetToken)
+                // ADICIONE ESTES LOGS PARA VERIFICAR OS TOKENS
+
+            }
+
+            Role.VALIDATOR -> {
+                println("DEBUG - Aprovando um VALIDATOR.")
+                // CORREÇÃO: Passa o ID do USUÁRIO, não do OrganizationMember
+                organizationRepository.addValidatorToOrganization(fullRequest.organizationId, user.id)
+            }
+
+            Role.ADMIN -> {
+                println("DEBUG - Aprovando um ADMIN.")
+                // CORREÇÃO: Passa o ID do USUÁRIO, não do OrganizationMember
+                organizationRepository.addAdminToOrganization(fullRequest.organizationId, user.id)
+            }
+        }
+
+        entryRequestRepository.updateStatus(fullRequest.id, "APPROVED")
 
         return savedMember
     }
@@ -74,18 +109,21 @@ class EntryRequestService(
     /**
      * Rejeita um pedido de entrada
      */
-    fun rejectRequest(entryRequest: EntryRequest): EntryRequestDTO {
-        val request = entryRequestRepository.findById(entryRequest.id)
-            ?: throw IllegalArgumentException("Pedido de entrada não encontrado (id=$entryRequest)")
+    fun rejectRequest(requestId: String) {
+        // 1. Busca a solicitação completa do banco de dados.
+        val request = entryRequestRepository.findById(requestId)
+            ?: throw IllegalArgumentException("Pedido de entrada não encontrado (id=$requestId)")
 
+        // 2. Garante que a solicitação ainda está pendente.
         if (request.status != "WAITING") {
             throw IllegalStateException("Pedido já foi processado (status é ${request.status})")
         }
 
-        val updated = entryRequestRepository.updateStatus(entryRequest)
+        // 3. Chama o método de atualização simples, passando o ID e o novo status.
+        entryRequestRepository.updateStatus(request.id, "DENIED")
 
-        println("DEBUG - Pedido rejeitado: $updated")
-        return updated
+        println("DEBUG - Pedido ${request.id} rejeitado com sucesso.")
+        // Este método não precisa retornar nada, pois ele apenas realiza uma ação.
     }
 
 
@@ -95,4 +133,6 @@ class EntryRequestService(
     fun getRequestById(requestId: String): EntryRequestDTO? {
         return entryRequestRepository.findById(requestId)
     }
+
+
 }

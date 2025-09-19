@@ -15,7 +15,8 @@ import org.springframework.stereotype.Service
 class OrganizationService(
     private val organizationRepository: OrganizationRepository,
     private val userRepository: UserRepository,
-    private val cloudinaryService: CloudinaryService
+    private val cloudinaryService: CloudinaryService,
+    private val facePlusPlusService: FacePlusPlusService
 ) {
 
     /**
@@ -25,16 +26,18 @@ class OrganizationService(
      * @return A organização completa que foi salva.
      */
     fun createOrganization(orgData: OrganizationCreateDTO, creatorAdmin: User): Organization {
-        // Validação básica para garantir que o nome não está vazio
         if (orgData.name.isBlank()) {
             throw IllegalArgumentException("O nome da organização não pode ser vazio.")
         }
 
-        // Cria a nova organização, adicionando o ID do criador à lista de admins
+        // 1. Cria o FaceSet na API do Face++
+        val faceSetToken = facePlusPlusService.createFaceSet()
+
         val newOrganization = Organization(
             name = orgData.name,
             description = orgData.description,
-            adminIds = listOf(creatorAdmin.id) // Adiciona o criador como o primeiro admin
+            adminIds = listOf(creatorAdmin.id),
+            faceSetToken = faceSetToken // 2. Salva o token do FaceSet
         )
         return organizationRepository.save(newOrganization)
     }

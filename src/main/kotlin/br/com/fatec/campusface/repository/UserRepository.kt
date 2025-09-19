@@ -14,8 +14,11 @@ class UserRepository(private val firestore: Firestore) {
     fun save(user: User): User {
         val docRef = collection.document()
 
-        docRef.set(user).get()
-        return user.copy(id = docRef.id)
+        val userWithId = user.copy(id = docRef.id)
+
+        docRef.set(userWithId).get()
+
+        return userWithId
     }
 
     fun findAll(): List<Pair<String, User>> {
@@ -48,7 +51,6 @@ class UserRepository(private val firestore: Firestore) {
         }
 
         val document = snapshot.documents.first()
-        // Retorna o seu modelo User, preenchendo o ID
         return document.toObject(User::class.java).copy(id = document.id)
     }
 
@@ -68,23 +70,39 @@ class UserRepository(private val firestore: Firestore) {
      * @return Uma lista de objetos User correspondentes aos IDs encontrados.
      */
     fun findAllByIds(userIds: List<String>): List<User> {
-        // Se a lista de IDs estiver vazia, retorna uma lista vazia para evitar uma consulta desnecessária.
         if (userIds.isEmpty()) {
             return emptyList()
         }
 
-        // Usa a consulta 'whereIn' com o ID do documento para buscar todos de uma vez.
-        // O Firestore limita as consultas 'in' a um máximo de 30 itens por vez.
-        // Para listas maiores, seria necessário dividir a busca em lotes (chunks).
-        // Para este projeto, 30 é um limite razoável.
         val snapshot = collection
             .whereIn(FieldPath.documentId(), userIds)
             .get()
             .get()
 
-        // Mapeia os documentos encontrados para objetos User, preenchendo o campo 'id'.
         return snapshot.documents.mapNotNull { document ->
             document.toObject(User::class.java)?.copy(id = document.id)
         }
+    }
+
+    fun findByFaceToken(faceToken: String): User? {
+        val snapshot = collection
+            .whereEqualTo("faceToken", faceToken)
+            .limit(1)
+            .get().get()
+
+        if (snapshot.isEmpty) {
+            return null
+        }
+
+        // Retorna o primeiro (e único) usuário encontrado com este token.
+        return snapshot.documents.first()?.toObject(User::class.java)
+    }
+
+    /**
+     * NOVO: Atualiza o campo faceToken de um usuário.
+     * Será usado quando o usuário for adicionado a um FaceSet.
+     */
+    fun updateFaceToken(userId: String, faceToken: String) {
+        collection.document(userId).update("faceToken", faceToken).get()
     }
 }
