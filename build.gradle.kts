@@ -49,13 +49,13 @@ dependencies {
 	}
 
 
-	implementation("io.jsonwebtoken:jjwt-api:0.12.5") // Or the latest version
+	implementation("io.jsonwebtoken:jjwt-api:0.12.5")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
-	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5") // For JSON processing with Jackson
+	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
 	implementation ("com.auth0:java-jwt:4.5.0")
 
 	implementation("com.cloudinary:cloudinary-http44:1.39.0") {
-		// Adicione este bloco para excluir o commons-logging
+		// excluir o commons-logging
 		exclude(group = "commons-logging", module = "commons-logging")
 	}
 
