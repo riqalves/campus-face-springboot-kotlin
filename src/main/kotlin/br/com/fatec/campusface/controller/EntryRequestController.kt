@@ -61,9 +61,9 @@ class EntryRequestController(
 
 
     @GetMapping("/organization/{organizationId}")
-    fun getRequestsByOrganization(@PathVariable organizationId: String): ResponseEntity<ApiResponse<Any>> {
+    fun getRequestsByOrganization(@PathVariable hubCode: String): ResponseEntity<ApiResponse<Any>> {
         return try {
-            val requests = entryRequestService.getRequestsByOrganization(organizationId)
+            val requests = entryRequestService.listPendingRequests(organizationId)
             ApiResponse("Pedidos encontrados", true, requests)
             ResponseEntity.status(HttpStatus.OK)
                 .body(

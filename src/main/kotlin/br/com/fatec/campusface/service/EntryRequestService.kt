@@ -69,8 +69,8 @@ class EntryRequestService(
         )
     }
 
-    fun listPendingRequests(userId: String): List<EntryRequestResponseDTO> {
-        val organization = organizationRepository.findByHubCode(userId)
+    fun listPendingRequests(hubCode: String): List<EntryRequestResponseDTO> {
+        val organization = organizationRepository.findByHubCode(hubCode)
             ?: throw IllegalArgumentException("Hub não encontrado")
         val requests = entryRequestRepository.findByOrganizationIdAndStatus(organization.id, RequestStatus.PENDING)
 
