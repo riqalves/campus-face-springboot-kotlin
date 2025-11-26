@@ -9,7 +9,7 @@ data class OrganizationMember(
     val userId: String = "",
     val role: Role = Role.MEMBER,
     val status: MemberStatus = MemberStatus.ACTIVE,
-    val faceImageId: String = "",
+    val faceImageId: String? = "",
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
 )

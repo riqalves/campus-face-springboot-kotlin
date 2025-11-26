@@ -1,12 +1,15 @@
 package br.com.fatec.campusface.controller
 
 import br.com.fatec.campusface.dto.ApiResponse
-import br.com.fatec.campusface.dto.EntryRequestDTO
+import br.com.fatec.campusface.dto.EntryRequestCreateDTO
 import br.com.fatec.campusface.dto.EntryRequestResponseDTO
 import br.com.fatec.campusface.dto.UserDTO
+import br.com.fatec.campusface.models.User
 import org.springframework.security.access.prepost.PreAuthorize
 import br.com.fatec.campusface.service.EntryRequestService
 import br.com.fatec.campusface.service.UserService
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -14,28 +17,33 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/entry-requests")
+@SecurityRequirement(name = "bearerAuth")
 class EntryRequestController(
     private val entryRequestService: EntryRequestService,
     private val userService: UserService
 ) {
 
     @PostMapping("/create")
-    fun createRequest(@RequestBody entryRequestResponseDTO: EntryRequestResponseDTO): ResponseEntity<ApiResponse<EntryRequestDTO>> {
+    fun createRequest(
+        @Valid @RequestBody data: EntryRequestCreateDTO
+        authentication: Authentication
+    ): ResponseEntity<ApiResponse<EntryRequestResponseDTO>> {
         return try {
-            println("DEBUG - EntryRequestController $entryRequestResponseDTO")
-            val request = entryRequestService.createRequest(entryRequestResponseDTO)
+            println("DEBUG - EntryRequestController $data")
+            val user = authentication.principal as User
+            val request = entryRequestService.createRequest(user.id, data)
 
             ResponseEntity.status(HttpStatus.CREATED)
                 .body(
                     ApiResponse(
                         success = true,
-                        message = "Pedido criado com sucesso",
+                        message = "Solicitação enviada com sucesso. Aguarde a aprovação.",
                         data = request
                     )
                 )
-        } catch (e: Exception) {
-            println("ERRO - Falha ao criar EntryRequest: ${e.message}")
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        } catch (e: IllegalArgumentException) {
+            println("ERRO - Falha ao criar solicitação: ${e.message}")
+            ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(
                     ApiResponse(
                         success = false,
@@ -43,6 +51,11 @@ class EntryRequestController(
                         data = null
                     )
                 )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                ApiResponse(success = false, message = "Erro ao criar solicitação: ${e.message}", data = null)
+            )
         }
     }
 
@@ -235,5 +248,4 @@ class EntryRequestController(
             )
         }
     }
-
 }

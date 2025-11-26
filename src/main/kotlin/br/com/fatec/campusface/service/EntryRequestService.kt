@@ -1,138 +1,121 @@
 package br.com.fatec.campusface.service
 
-import br.com.fatec.campusface.dto.EntryRequestDTO
+import br.com.fatec.campusface.dto.EntryRequestCreateDTO
 import br.com.fatec.campusface.dto.EntryRequestResponseDTO
+import br.com.fatec.campusface.dto.UserDTO
+import br.com.fatec.campusface.models.EntryRequest
+import br.com.fatec.campusface.models.MemberStatus
 import br.com.fatec.campusface.models.OrganizationMember
+import br.com.fatec.campusface.models.RequestStatus
 import br.com.fatec.campusface.models.Role
+import br.com.fatec.campusface.models.User
 import br.com.fatec.campusface.repository.UserRepository
 import br.com.fatec.campusface.repository.EntryRequestRepository
 import br.com.fatec.campusface.repository.OrganizationMemberRepository
 import br.com.fatec.campusface.repository.OrganizationRepository
 import org.springframework.stereotype.Service
+import java.time.Instant
 
 @Service
 class EntryRequestService(
     private val entryRequestRepository: EntryRequestRepository,
     private val organizationMemberRepository: OrganizationMemberRepository,
     private val organizationRepository: OrganizationRepository,
-    private val userService: UserService,
     private val userRepository: UserRepository,
-    private val facePlusPlusService: FacePlusPlusService,
     private val cloudinaryService: CloudinaryService
 ) {
 
 
     /**
      * Cria um novo pedido de entrada.
-     * O status inicial é "WAITING"
+     * O status inicial é "PENDING"
      */
-    fun createRequest(entryRequestResponseDTO: EntryRequestResponseDTO): EntryRequestDTO {
-        if (entryRequestResponseDTO.userId == null) {
-            throw (IllegalArgumentException("User ID is required"))
+    fun createRequest(userId: String, data: EntryRequestCreateDTO): EntryRequestResponseDTO {
+        //busca org por hubCode
+        val organization = organizationRepository.findByHubCode(data.hubCode)
+            ?: throw IllegalArgumentException("Organização não encontrada com o código: ${data.hubCode}")
+
+        // verifica se o usuario ja é um membro
+        val existingMember = organizationMemberRepository.findByUserIdAndOrganizationId(userId, organization.id)
+        if (existingMember != null) {
+            throw IllegalStateException("Você já é um membro desta Organização")
         }
-        return entryRequestRepository.save(entryRequestResponseDTO)
-    }
-
-    /**
-     * Lista todos os pedidos de uma organização (útil para ADMINs)
-     */
-    fun getRequestsByOrganization(organizationId: String): List<EntryRequestDTO> {
-        return entryRequestRepository.findByOrganizationId(organizationId)
-    }
-
-
-
-    /**
-     * Aprova um pedido de entrada, criando o OrganizationMember
-     */
-    fun approveRequest(entryRequestResponseDTO: EntryRequestResponseDTO): OrganizationMember? {
-        val fullRequest = entryRequestRepository.findById(entryRequestResponseDTO.id)
-            ?: throw IllegalArgumentException("Pedido de entrada não encontrado")
-
-        if (fullRequest.status != "WAITING") {
-            throw IllegalStateException("A solicitação já foi processada")
-        }
-
-        val user = userRepository.findById(fullRequest.user?.id!!)
-            ?: throw IllegalStateException("Usuário não encontrado.")
-
-        val organization = organizationRepository.findById(fullRequest.organizationId)
-            ?: throw IllegalStateException("Organização não encontrada.")
-
-        // Cria o registro de OrganizationMember (continua útil para rastrear a afiliação)
-        val newMember = OrganizationMember(
-            userId = fullRequest.user.id,
-            organizationId = fullRequest.organizationId,
-            faceImageId = user.faceImageId
+        val newEntryRequest = EntryRequest(
+            userId = userId,
+            organizationId = organization.id,
+            hubCode = organization.hubCode,
+            role = data.role,
+            status = RequestStatus.PENDING,
+            requestedAt = Instant.now()
         )
-        val savedMember = organizationMemberRepository.save(newMember)
 
-        // LÓGICA CONDICIONAL BASEADA NA ROLE DO USUÁRIO
-        when (user.role) {
-            Role.MEMBER -> {
-                println("DEBUG - Aprovando um MEMBER.")
-                // CORREÇÃO: Passa o ID do USUÁRIO, não do OrganizationMember
-                organizationRepository.addMemberToOrganization(fullRequest.organizationId, user.id)
+        val savedRequest = entryRequestRepository.save(newEntryRequest)
 
-                // ... (lógica de registro facial, que já usa o 'user' e está correta)
-                val userImagePublicId = user.faceImageId ?: throw IllegalStateException("Membro não tem imagem de referência.")
-                val faceSetToken = organization.faceSetToken ?: throw IllegalStateException("Organização não configurada para reconhecimento facial.")
-                val imageBytes = cloudinaryService.downloadImageFromUrl(cloudinaryService.generateSignedUrl(userImagePublicId))
-                val faceToken = facePlusPlusService.detectFaceAndGetToken(imageBytes)
-                userRepository.updateFaceToken(user.id, faceToken)
-                println("DEBUG - Pausando por 1.1 segundos para evitar limite de concorrência...")
-                Thread.sleep(1100) // 1100 milissegundos
-                println("DEBUG - Tentando adicionar faceToken: [$faceToken] ao faceSetToken: [$faceSetToken]")
-                facePlusPlusService.addFaceToFaceSet(faceToken, faceSetToken)
-                // ADICIONE ESTES LOGS PARA VERIFICAR OS TOKENS
-
-            }
-
-            Role.VALIDATOR -> {
-                println("DEBUG - Aprovando um VALIDATOR.")
-                // CORREÇÃO: Passa o ID do USUÁRIO, não do OrganizationMember
-                organizationRepository.addValidatorToOrganization(fullRequest.organizationId, user.id)
-            }
-
-            Role.ADMIN -> {
-                println("DEBUG - Aprovando um ADMIN.")
-                // CORREÇÃO: Passa o ID do USUÁRIO, não do OrganizationMember
-                organizationRepository.addAdminToOrganization(fullRequest.organizationId, user.id)
-            }
-        }
-
-        entryRequestRepository.updateStatus(fullRequest.id, "APPROVED")
-
-        return savedMember
+        val user = userRepository.findById(userId) ?: throw java.lang.IllegalStateException("Usuário não encontrado")
+        return toResponseDTO(savedRequest, user)
     }
 
-    /**
-     * Rejeita um pedido de entrada
-     */
-    fun rejectRequest(requestId: String) {
-        // 1. Busca a solicitação completa do banco de dados.
+    private fun toResponseDTO(entryRequest: EntryRequest, user: User): EntryRequestResponseDTO {
+        val faceUrl = user.faceImageId?.let { cloudinaryService.generateSignedUrl(it) }
+        val userDTO = UserDTO.fromEntity(user, faceUrl)
+
+        return EntryRequestResponseDTO(
+            id = entryRequest.id,
+            hubCode = entryRequest.hubCode,
+            role = entryRequest.role,
+            status = entryRequest.status,
+            requestedAt = entryRequest.requestedAt,
+            user = userDTO,
+        )
+    }
+
+    fun listPendingRequests(userId: String): List<EntryRequestResponseDTO> {
+        val organization = organizationRepository.findByHubCode(userId)
+            ?: throw IllegalArgumentException("Hub não encontrado")
+        val requests = entryRequestRepository.findByOrganizationIdAndStatus(organization.id, RequestStatus.PENDING)
+
+        return requests.mapNotNull { req ->
+            val user = userRepository.findById(req.userId)
+            user?.let { toResponseDTO(req, it)}
+        }
+
+    }
+
+    fun approveRequest(requestId: String){
         val request = entryRequestRepository.findById(requestId)
-            ?: throw IllegalArgumentException("Pedido de entrada não encontrado (id=$requestId)")
-
-        // 2. Garante que a solicitação ainda está pendente.
-        if (request.status != "WAITING") {
-            throw IllegalStateException("Pedido já foi processado (status é ${request.status})")
+            ?: throw IllegalArgumentException("Solicitação não encontrado")
+        if (request.status == RequestStatus.PENDING) {
+            throw IllegalStateException("Esta solicitação já foi processada")
         }
 
-        // 3. Chama o método de atualização simples, passando o ID e o novo status.
-        entryRequestRepository.updateStatus(request.id, "DENIED")
+        val newMember = OrganizationMember(
+            organizationId = request.organizationId,
+            userId = request.userId,
+            role = request.role,
+            status = MemberStatus.ACTIVE,
+            faceImageId = null
+        )
 
-        println("DEBUG - Pedido ${request.id} rejeitado com sucesso.")
-        // Este método não precisa retornar nada, pois ele apenas realiza uma ação.
+        organizationMemberRepository.save(newMember)
+
+        entryRequestRepository.updateStatus(request.id, RequestStatus.APPROVED)
+
+        //TODO Gatilho de SYNC
+        if (request.role == Role.MEMBER) {
+            println("TODO: CHAMAR O SYNC SEVICE para notificar o client sobre o membro ${newMember.id}")
+
+        }
     }
 
+    fun rejectRequest(requestId: String) {
+        val request = entryRequestRepository.findById(requestId)
+            ?: throw IllegalArgumentException("Solicitação não encontrada")
 
-    /**
-     * Busca um pedido específico
-     */
-    fun getRequestById(requestId: String): EntryRequestDTO? {
-        return entryRequestRepository.findById(requestId)
+        if (request.status != RequestStatus.PENDING) {
+            throw IllegalStateException("Solicitação não está pendente.")
+        }
+
+        entryRequestRepository.updateStatus(requestId, RequestStatus.DENIED)
     }
-
 
 }
