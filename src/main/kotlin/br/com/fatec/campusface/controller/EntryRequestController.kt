@@ -2,7 +2,7 @@ package br.com.fatec.campusface.controller
 
 import br.com.fatec.campusface.dto.ApiResponse
 import br.com.fatec.campusface.dto.EntryRequestDTO
-import br.com.fatec.campusface.models.EntryRequest
+import br.com.fatec.campusface.models.EntryRequestResponseDTO
 import br.com.fatec.campusface.dto.UserDTO
 import org.springframework.security.access.prepost.PreAuthorize
 import br.com.fatec.campusface.service.EntryRequestService
@@ -20,10 +20,10 @@ class EntryRequestController(
 ) {
 
     @PostMapping("/create")
-    fun createRequest(@RequestBody entryRequest: EntryRequest): ResponseEntity<ApiResponse<EntryRequestDTO>> {
+    fun createRequest(@RequestBody entryRequestResponseDTO: EntryRequestResponseDTO): ResponseEntity<ApiResponse<EntryRequestDTO>> {
         return try {
-            println("DEBUG - EntryRequestController $entryRequest")
-            val request = entryRequestService.createRequest(entryRequest)
+            println("DEBUG - EntryRequestController $entryRequestResponseDTO")
+            val request = entryRequestService.createRequest(entryRequestResponseDTO)
 
             ResponseEntity.status(HttpStatus.CREATED)
                 .body(
@@ -110,18 +110,18 @@ class EntryRequestController(
     @PostMapping("/{requestId}/approve")
     fun approveRequest(
         @PathVariable requestId: String,
-        @RequestBody entryRequest: EntryRequest
+        @RequestBody entryRequestResponseDTO: EntryRequestResponseDTO
     ): ResponseEntity<ApiResponse<Any>> {
         return try {
-            println("DEBUG - EntryRequestController $entryRequest")
+            println("DEBUG - EntryRequestController $entryRequestResponseDTO")
             val user = userService.getUserById(requestId)
             val entryRequestDTO = EntryRequestDTO(
                 id = requestId,
                 user = user,
-                organizationId = entryRequest.organizationId,
+                organizationId = entryRequestResponseDTO.organizationId,
                 status = "APPROVED",
             )
-            val entryRequestWithId = entryRequest.copy(id = requestId)
+            val entryRequestWithId = entryRequestResponseDTO.copy(id = requestId)
             println("DEBUG - EntryRequestController $entryRequestDTO")
 
             val member = entryRequestService.approveRequest(entryRequestWithId)
@@ -198,10 +198,8 @@ class EntryRequestController(
                 id = userModel.id,
                 fullName = userModel.fullName,
                 email = userModel.email,
-                role = userModel.role,
                 document = userModel.document,
-                faceImageId = userModel.faceImageId!!,
-                faceToken = userModel.faceToken
+                faceImageId = userModel.faceImageId!!
             )
 
             val authInfo = mapOf(

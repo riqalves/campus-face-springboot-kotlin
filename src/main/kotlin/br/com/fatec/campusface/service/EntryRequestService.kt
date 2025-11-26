@@ -1,7 +1,7 @@
 package br.com.fatec.campusface.service
 
 import br.com.fatec.campusface.dto.EntryRequestDTO
-import br.com.fatec.campusface.models.EntryRequest
+import br.com.fatec.campusface.models.EntryRequestResponseDTO
 import br.com.fatec.campusface.models.OrganizationMember
 import br.com.fatec.campusface.models.Role
 import br.com.fatec.campusface.repository.UserRepository
@@ -26,11 +26,11 @@ class EntryRequestService(
      * Cria um novo pedido de entrada.
      * O status inicial é "WAITING"
      */
-    fun createRequest(entryRequest: EntryRequest): EntryRequestDTO {
-        if (entryRequest.userId == null) {
+    fun createRequest(entryRequestResponseDTO: EntryRequestResponseDTO): EntryRequestDTO {
+        if (entryRequestResponseDTO.userId == null) {
             throw (IllegalArgumentException("User ID is required"))
         }
-        return entryRequestRepository.save(entryRequest)
+        return entryRequestRepository.save(entryRequestResponseDTO)
     }
 
     /**
@@ -45,8 +45,8 @@ class EntryRequestService(
     /**
      * Aprova um pedido de entrada, criando o OrganizationMember
      */
-    fun approveRequest(entryRequest: EntryRequest): OrganizationMember? {
-        val fullRequest = entryRequestRepository.findById(entryRequest.id)
+    fun approveRequest(entryRequestResponseDTO: EntryRequestResponseDTO): OrganizationMember? {
+        val fullRequest = entryRequestRepository.findById(entryRequestResponseDTO.id)
             ?: throw IllegalArgumentException("Pedido de entrada não encontrado")
 
         if (fullRequest.status != "WAITING") {

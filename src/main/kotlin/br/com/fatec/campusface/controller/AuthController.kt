@@ -120,8 +120,7 @@ class AuthController() {
                 fullName = fullName,
                 email = email,
                 hashedPassword = password,
-                document = document,
-                role = role
+                document = document
             )
 
             val createdUserDto = userService.createUser(userData, image)

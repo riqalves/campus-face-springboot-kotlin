@@ -1,16 +1,17 @@
 package br.com.fatec.campusface.dto
 import br.com.fatec.campusface.models.Role
 import br.com.fatec.campusface.models.User
+import java.time.Instant
 
 
 data class UserDTO(
     val id: String,
     val fullName: String,
     val email: String,
-    val role: Role,
     val document: String?,
-    val faceImageId: String?, // URL assinada/temporária
-    val faceToken: String?   // <-- CAMPO ADICIONADO
+    val faceImageId: String?,
+    val createdAt: Instant,
+    val updatedAt: Instant,
 ) {
     companion object {
         fun fromEntity(id: String, user: User) = UserDTO(
@@ -19,8 +20,8 @@ data class UserDTO(
             email = user.email,
             document = user.document,
             faceImageId = user.faceImageId ?: "default.png",
-            role = user.role,
-            faceToken = user.faceToken
+            createdAt = user.createdAt,
+            updatedAt = user.updatedAt,
         )
     }
 }

@@ -1,7 +1,7 @@
 package br.com.fatec.campusface.repository
 
 import br.com.fatec.campusface.dto.EntryRequestDTO
-import br.com.fatec.campusface.models.EntryRequest
+import br.com.fatec.campusface.models.EntryRequestResponseDTO
 import br.com.fatec.campusface.service.UserService
 import com.google.cloud.firestore.Firestore
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,21 +17,21 @@ class EntryRequestRepository(private val firestore: Firestore) {
 
 
     // Cria um novo pedido de entrada
-    fun save(entryRequest: EntryRequest): EntryRequestDTO {
+    fun save(entryRequestResponseDTO: EntryRequestResponseDTO): EntryRequestDTO {
         val docRef = collection.document() // Firestore gera o ID automático
 
-        val user = userService.getUserById(entryRequest.userId!!)
+        val user = userService.getUserById(entryRequestResponseDTO.userId!!)
         val dto = EntryRequestDTO(
             id = docRef.id,
             user = user,
-            organizationId = entryRequest.organizationId,
-            status = entryRequest.status
+            organizationId = entryRequestResponseDTO.organizationId,
+            status = entryRequestResponseDTO.status
         )
-        val userToSave = EntryRequest(
+        val userToSave = EntryRequestResponseDTO(
             id = docRef.id,
-            userId = entryRequest.userId,
-            organizationId = entryRequest.organizationId,
-            status = entryRequest.status
+            userId = entryRequestResponseDTO.userId,
+            organizationId = entryRequestResponseDTO.organizationId,
+            status = entryRequestResponseDTO.status
         )
 
         docRef.set(userToSave).get()
@@ -46,7 +46,7 @@ class EntryRequestRepository(private val firestore: Firestore) {
             println("DEBUG ENTRYREQUEST REPOSITORY - User not found: $docSnapshot")
 
         return if (docSnapshot.exists()) {
-            val request = docSnapshot.toObject(EntryRequest::class.java) ?: return null
+            val request = docSnapshot.toObject(EntryRequestResponseDTO::class.java) ?: return null
             val user = userService.getUserById(request.userId!!) ?: return null
             EntryRequestDTO(
                 id = docSnapshot.id,
@@ -68,7 +68,7 @@ class EntryRequestRepository(private val firestore: Firestore) {
             .get()
             .get()
         return snapshot.documents.mapNotNull { doc ->
-            val request = doc.toObject(EntryRequest::class.java) ?: return@mapNotNull null
+            val request = doc.toObject(EntryRequestResponseDTO::class.java) ?: return@mapNotNull null
             val user = request.userId?.let { userService.getUserById(it) }
 
             EntryRequestDTO(
@@ -96,7 +96,7 @@ class EntryRequestRepository(private val firestore: Firestore) {
             .get()
 
         return querySnapshot.documents.mapNotNull { doc ->
-            val request = doc.toObject(EntryRequest::class.java) ?: return@mapNotNull null
+            val request = doc.toObject(EntryRequestResponseDTO::class.java) ?: return@mapNotNull null
             val user = request.userId?.let { userService.getUserById(it) }
             EntryRequestDTO(
                 id = doc.id,
@@ -116,7 +116,7 @@ class EntryRequestRepository(private val firestore: Firestore) {
             .get()
 
         val doc = snapshot.documents.firstOrNull() ?: return null
-        val request = doc.toObject(EntryRequest::class.java) ?: return null
+        val request = doc.toObject(EntryRequestResponseDTO::class.java) ?: return null
         val user = request.userId?.let { userService.getUserById(it) }
 
         return EntryRequestDTO(
