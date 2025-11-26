@@ -27,11 +27,12 @@ class UserService(
     private lateinit var defaultOrganizationId: String
 
     fun createUser(userData: User, imageFile: MultipartFile?): UserDTO {
-        // --- 1. Criação do Usuário (lógica existente) ---
+        // validacao de email
         if (userRepository.findByEmail(userData.email) != null) {
             throw IllegalArgumentException("Email já cadastrado.")
         }
-
+        // Upload da imagem (se ouver)
+        // o User generico pode ter foto, mas sera usada quando virar member em alguma org
         var imagePublicId: String? = null
         if (imageFile != null) {
             val processedImageBytes = imageProcessingService.processImageForApi(imageFile)
@@ -46,71 +47,8 @@ class UserService(
         )
         val savedUser = userRepository.save(userToSave)
 
-        // --- 2. Associação à Organização (NOVA LÓGICA) ---
-        // Se o usuário for MEMBER ou VALIDATOR, associa à organização padrão
-        if (savedUser.role == Role.MEMBER || savedUser.role == Role.VALIDATOR) {
-            onboardUserToOrganization(savedUser, defaultOrganizationId)
-        }
-
         // --- 3. Retorno do DTO (lógica existente) ---
         return savedUser.toDTO() // Usando uma função de extensão para converter
-    }
-
-    /**
-     * Função auxiliar que contém a lógica de onboarding que antes estava no EntryRequestService.
-     */
-    private fun onboardUserToOrganization(user: User, organizationId: String) {
-        println("DEBUG - Associando usuário ${user.id} à organização $organizationId")
-
-        // a. Cria o registro OrganizationMember
-        val newMember = OrganizationMember(
-            userId = user.id,
-            organizationId = organizationId,
-            faceImageId = user.faceImageId
-        )
-        organizationMemberRepository.save(newMember)
-
-        // b. Adiciona o usuário à lista correta na Organização
-        when (user.role) {
-            Role.MEMBER -> {
-                organizationRepository.addMemberToOrganization(organizationId, user.id)
-                // c. Executa o fluxo de registro facial
-                registerFaceForUser(user, organizationId)
-            }
-            Role.VALIDATOR -> {
-                organizationRepository.addValidatorToOrganization(organizationId, user.id)
-            }
-            else -> {} // Não faz nada para ADMINs
-        }
-    }
-
-    /**
-     * Função auxiliar para o fluxo de registro facial.
-     */
-    private fun registerFaceForUser(user: User, organizationId: String) {
-        try {
-            val organization = organizationRepository.findById(organizationId)
-                ?: throw IllegalStateException("Organização padrão não encontrada.")
-
-            val userImagePublicId = user.faceImageId ?: throw IllegalStateException("Membro não tem imagem de referência.")
-            val faceSetToken = organization.faceSetToken ?: throw IllegalStateException("Organização não configurada para reconhecimento facial.")
-
-            val imageUrl = cloudinaryService.generateSignedUrl(userImagePublicId)
-            val imageBytes = cloudinaryService.downloadImageFromUrl(imageUrl)
-
-            val faceToken = facePlusPlusService.detectFaceAndGetToken(imageBytes)
-            userRepository.updateFaceToken(user.id, faceToken)
-            // --- SOLUÇÃO AQUI ---
-            // Adiciona uma pausa de 1.1 segundos para respeitar o limite de 1 QPS do Face++
-            println("DEBUG - Pausando por 1.1 segundos para evitar limite de concorrência...")
-            Thread.sleep(1100) // 1100 milissegundo
-            facePlusPlusService.addFaceToFaceSet(faceToken, faceSetToken)
-            println("DEBUG - Rosto do usuário ${user.id} adicionado ao FaceSet da organização.")
-        } catch (e: Exception) {
-            // Loga o erro mas não impede a criação do usuário
-            println("AVISO - Falha no processo de registro facial para o usuário ${user.id}: ${e.message}")
-            e.printStackTrace()
-        }
     }
 
 

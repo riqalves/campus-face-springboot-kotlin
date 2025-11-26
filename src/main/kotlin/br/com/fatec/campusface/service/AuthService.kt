@@ -27,7 +27,6 @@ class AuthService(val userRepository: UserRepository) : UserDetailsService {
             val token = JWT.create()
                 .withIssuer("campusface")
                 .withSubject(user.id)
-                .withClaim("roles", user.role.name )
                 .withExpiresAt(genExpirationDate())
                 .sign(algorithm)
             return token
@@ -47,7 +46,7 @@ class AuthService(val userRepository: UserRepository) : UserDetailsService {
                 .verify(token)
                 .getSubject()
         }catch (e: JWTVerificationException){
-            return ""
+            return e.message?:"Invalid JWT token"
         }
     }
 

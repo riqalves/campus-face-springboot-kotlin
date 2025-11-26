@@ -2,7 +2,7 @@ package br.com.fatec.campusface.controller
 
 import br.com.fatec.campusface.dto.ApiResponse
 import br.com.fatec.campusface.dto.EntryRequestDTO
-import br.com.fatec.campusface.models.EntryRequestResponseDTO
+import br.com.fatec.campusface.dto.EntryRequestResponseDTO
 import br.com.fatec.campusface.dto.UserDTO
 import org.springframework.security.access.prepost.PreAuthorize
 import br.com.fatec.campusface.service.EntryRequestService

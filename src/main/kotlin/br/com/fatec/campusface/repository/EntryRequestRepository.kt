@@ -1,7 +1,7 @@
 package br.com.fatec.campusface.repository
 
 import br.com.fatec.campusface.dto.EntryRequestDTO
-import br.com.fatec.campusface.models.EntryRequestResponseDTO
+import br.com.fatec.campusface.dto.EntryRequestResponseDTO
 import br.com.fatec.campusface.service.UserService
 import com.google.cloud.firestore.Firestore
 import org.springframework.beans.factory.annotation.Autowired

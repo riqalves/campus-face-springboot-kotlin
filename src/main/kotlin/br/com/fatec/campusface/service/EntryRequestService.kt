@@ -1,7 +1,7 @@
 package br.com.fatec.campusface.service
 
 import br.com.fatec.campusface.dto.EntryRequestDTO
-import br.com.fatec.campusface.models.EntryRequestResponseDTO
+import br.com.fatec.campusface.dto.EntryRequestResponseDTO
 import br.com.fatec.campusface.models.OrganizationMember
 import br.com.fatec.campusface.models.Role
 import br.com.fatec.campusface.repository.UserRepository
