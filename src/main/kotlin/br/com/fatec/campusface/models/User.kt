@@ -4,6 +4,7 @@ import com.google.firebase.database.Exclude
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
+import java.time.Instant
 
 
 data class User(
@@ -13,10 +14,11 @@ data class User(
     val hashedPassword: String = "", // será criptografada
     val document: String = "",
     val faceImageId: String? = "",
+    val createdAt: Instant = Instant.now(),
+    val updatedAt: Instant = Instant.now()
 ): UserDetails {
     @Exclude
     override fun getAuthorities(): Collection<GrantedAuthority> {
-        val authorities = mutableListOf<GrantedAuthority>()
 
 //        // Admin tem acesso a tudo
 //        when (role) {

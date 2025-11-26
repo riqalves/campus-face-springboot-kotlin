@@ -1,5 +1,7 @@
 package br.com.fatec.campusface.models
 
+import java.time.Instant
+
 
 data class Organization(
     val id: String = "",
@@ -9,4 +11,6 @@ data class Organization(
     val adminIds: List<String> = emptyList(),
     val validatorIds: List<String> = emptyList(),
     val memberIds: List<String> = emptyList(),
+    val createdAt: Instant = Instant.now(),
+    val updatedAt: Instant = Instant.now()
 )
