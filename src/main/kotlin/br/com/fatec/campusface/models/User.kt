@@ -13,32 +13,29 @@ data class User(
     val hashedPassword: String = "", // será criptografada
     val document: String = "",
     val faceImageId: String? = "",
-    val role: Role = Role.MEMBER,
-    val faceToken: String? = null
 ): UserDetails {
     @Exclude
     override fun getAuthorities(): Collection<GrantedAuthority> {
         val authorities = mutableListOf<GrantedAuthority>()
 
-        // Admin tem acesso a tudo
-        when (role) {
-            Role.ADMIN -> {
-                authorities.add(SimpleGrantedAuthority("ROLE_ADMIN"))
-                authorities.add(SimpleGrantedAuthority("ROLE_VALIDATOR"))
-                authorities.add(SimpleGrantedAuthority("ROLE_MEMBER"))
-            }
-            // Validator tem acesso a Validator e Member
-            Role.VALIDATOR -> {
-                authorities.add(SimpleGrantedAuthority("ROLE_VALIDATOR"))
-                authorities.add(SimpleGrantedAuthority("ROLE_MEMBER"))
-            }
-            // Member tem acesso apenas a Member
-            else -> {
-                authorities.add(SimpleGrantedAuthority("ROLE_MEMBER"))
-            }
-        }
-
-        return authorities
+//        // Admin tem acesso a tudo
+//        when (role) {
+//            Role.ADMIN -> {
+//                authorities.add(SimpleGrantedAuthority("ROLE_ADMIN"))
+//                authorities.add(SimpleGrantedAuthority("ROLE_VALIDATOR"))
+//                authorities.add(SimpleGrantedAuthority("ROLE_MEMBER"))
+//            }
+//            // Validator tem acesso a Validator e Member
+//            Role.VALIDATOR -> {
+//                authorities.add(SimpleGrantedAuthority("ROLE_VALIDATOR"))
+//                authorities.add(SimpleGrantedAuthority("ROLE_MEMBER"))
+//            }
+//            // Member tem acesso apenas a Member
+//            else -> {
+//                authorities.add(SimpleGrantedAuthority("ROLE_MEMBER"))
+//            }
+//        }
+        return emptyList()
     }
     override fun getPassword(): String = hashedPassword
     override fun getUsername(): String = email
