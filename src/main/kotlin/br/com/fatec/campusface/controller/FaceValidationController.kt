@@ -40,7 +40,7 @@ class FaceValidationController(
 
             val validatorUser = authentication.principal as User
 
-            val validatorMembership = orgMemberRepository.findByUserId(validatorUser.id).firstOrNull()
+            val validatorMembership = orgMemberRepository.findById(validatorUser.id)
                 ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse(success = false, message = "Validador não está associado a nenhuma organização.", data = null))
 
             val organizationId = validatorMembership.organizationId

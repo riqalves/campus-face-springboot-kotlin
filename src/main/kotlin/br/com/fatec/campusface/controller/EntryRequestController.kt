@@ -199,7 +199,9 @@ class EntryRequestController(
                 fullName = userModel.fullName,
                 email = userModel.email,
                 document = userModel.document,
-                faceImageId = userModel.faceImageId!!
+                faceImageId = userModel.faceImageId!!,
+                createdAt = userModel.createdAt,
+                updatedAt = userModel.updatedAt,
             )
 
             val authInfo = mapOf(

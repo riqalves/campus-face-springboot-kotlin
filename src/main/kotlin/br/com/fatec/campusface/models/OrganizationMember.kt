@@ -6,7 +6,7 @@ import java.time.Instant
 data class OrganizationMember(
     val id: String = "",
     val organizationId: String = "",
-    val userId: String? = "",
+    val userId: String = "",
     val role: Role = Role.MEMBER,
     val status: MemberStatus = MemberStatus.ACTIVE,
     val faceImageId: String = "",

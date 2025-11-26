@@ -77,11 +77,18 @@ class OrganizationRepository(private val firestore: Firestore) {
     fun addValidatorToOrganization(organizationId: String, validatorId: String) {
         collection.document(organizationId).update("validatorIds", FieldValue.arrayUnion(validatorId))
     }
-
     /**
-     * NOVO: Adiciona o ID de um novo admin à lista 'adminIds' de uma organização.
+     * Adiciona o ID de um novo admin à lista 'adminIds' de uma organização.
      */
     fun addAdminToOrganization(organizationId: String, adminId: String) {
         collection.document(organizationId).update("adminIds", FieldValue.arrayUnion(adminId))
     }
+
+    fun findByHubCode(hubCode: String): Organization? {
+        val snapshot = collection.whereEqualTo("hubCode", hubCode)
+            .limit(1)
+            .get().get()
+        return snapshot.documents.firstOrNull()?.toObject(Organization::class.java)
+    }
+
 }

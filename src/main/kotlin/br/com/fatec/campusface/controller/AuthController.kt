@@ -68,11 +68,11 @@ class AuthController() {
             val userDTO = UserDTO(
                 id = user.id,
                 email = user.email,
-                role = user.role,
                 fullName = user.fullName,
                 document = user.document,
                 faceImageId = user.faceImageId,
-                faceToken = user.faceToken
+                createdAt = user.createdAt,
+                updatedAt = user.updatedAt,
             )
 
             val responseBody = mapOf(
