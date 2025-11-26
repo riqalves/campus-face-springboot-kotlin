@@ -40,7 +40,6 @@ class AuthController() {
     @PostMapping("/login")
     fun login(@RequestBody @Validated data: LoginDTO): ResponseEntity<ApiResponse<Map<String, Any>>> {
         return try {
-            println("LOGIN: ")
             if (!userService.validateEmail(data.email)) {
                 return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
@@ -53,31 +52,16 @@ class AuthController() {
                     )
             }
             val usernamePassword = UsernamePasswordAuthenticationToken(data.email, data.password)
-
-
             val auth = authenticationManager.authenticate(usernamePassword)
 
             val userDetails = auth.principal as UserDetails
+            val userDto = userService.getUserByEmail(data.email) ?: throw UsernameNotFoundException("Usuário não encontrado")
 
-            val user = userService.getUserByEmail(userDetails.username)
-                ?: throw UsernameNotFoundException("Usuário não encontrado (email)")
-
-
-            val token = authService.generateToken(user)
-
-            val userDTO = UserDTO(
-                id = user.id,
-                email = user.email,
-                fullName = user.fullName,
-                document = user.document,
-                faceImageId = user.faceImageId,
-                createdAt = user.createdAt,
-                updatedAt = user.updatedAt,
-            )
+            val token = authService.generateToken(userDto)
 
             val responseBody = mapOf(
                 "token" to token,
-                "user" to userDTO
+                "user" to userDto
             )
 
             ResponseEntity.ok(
@@ -107,14 +91,9 @@ class AuthController() {
         @RequestParam("email") email: String,
         @RequestParam("hashedPassword") password: String,
         @RequestParam("document") document: String,
-        @RequestParam("role") role: Role,
         @RequestPart("image", required = false) image: MultipartFile?
     ): ResponseEntity<ApiResponse<Any>> {
         return try {
-            // 2. Adiciona uma validação: a imagem só é obrigatória se a role for MEMBER.
-            if (role == Role.MEMBER && (image == null || image.isEmpty)) {
-                throw IllegalArgumentException("A imagem é obrigatória para a role MEMBER.")
-            }
 
             val userData = User(
                 fullName = fullName,

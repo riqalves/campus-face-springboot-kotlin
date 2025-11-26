@@ -21,10 +21,10 @@ class UserRepository(private val firestore: Firestore) {
         return userWithId
     }
 
-    fun findAll(): List<Pair<String, User>> {
+    fun findAll(): List<User> {
         val snapshot = collection.get().get()
         return snapshot.documents.mapNotNull { doc ->
-            doc.toObject(User::class.java).let { user -> doc.id to user }
+            doc.toObject(User::class.java)?.copy(id = doc.id)
         }
     }
 

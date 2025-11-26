@@ -14,8 +14,8 @@ data class UserDTO(
     val updatedAt: Instant,
 ) {
     companion object {
-        fun fromEntity(id: String, user: User) = UserDTO(
-            id = id,
+        fun fromEntity(user: User, signedFaceUrl: String?) = UserDTO(
+            id = user.id,
             fullName = user.fullName,
             email = user.email,
             document = user.document,

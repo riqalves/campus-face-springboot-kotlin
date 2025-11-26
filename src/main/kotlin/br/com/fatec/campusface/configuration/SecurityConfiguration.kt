@@ -37,8 +37,8 @@ class SecurityConfiguration() {
                 auth
                     .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                     .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/users/hello").hasRole("ADMIN")
-                    .anyRequest().permitAll()
+                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                    .anyRequest().authenticated()
             }
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()

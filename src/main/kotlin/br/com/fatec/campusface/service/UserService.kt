@@ -1,11 +1,7 @@
 package br.com.fatec.campusface.service
 
 import br.com.fatec.campusface.dto.UserDTO
-import br.com.fatec.campusface.models.OrganizationMember
-import br.com.fatec.campusface.models.Role
 import br.com.fatec.campusface.models.User
-import br.com.fatec.campusface.repository.OrganizationMemberRepository
-import br.com.fatec.campusface.repository.OrganizationRepository
 import br.com.fatec.campusface.repository.UserRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -18,9 +14,6 @@ class UserService(
     private val passwordEncoder: PasswordEncoder,
     private val cloudinaryService: CloudinaryService,
     private val imageProcessingService: ImageProcessingService,
-    private val organizationRepository: OrganizationRepository,
-    private val organizationMemberRepository: OrganizationMemberRepository,
-    private val facePlusPlusService: FacePlusPlusService
 ) {
 
     @Value("\${default.organization.id}")
@@ -47,8 +40,7 @@ class UserService(
         )
         val savedUser = userRepository.save(userToSave)
 
-        // --- 3. Retorno do DTO (lógica existente) ---
-        return savedUser.toDTO() // Usando uma função de extensão para converter
+        return savedUser.toDTO()
     }
 
 
@@ -67,18 +59,11 @@ class UserService(
     }
 
     private fun User.toDTO(): UserDTO {
+        // Gera URL temporária apenas se tiver imagem
         val temporaryImageUrl = this.faceImageId?.let { publicId ->
             cloudinaryService.generateSignedUrl(publicId)
         }
-        return UserDTO(
-            id = this.id,
-            fullName = this.fullName,
-            email = this.email,
-            role = this.role,
-            document = this.document,
-            faceImageId = this.faceImageId,
-            faceToken = this.faceToken
-        )
+        return UserDTO.fromEntity(this, temporaryImageUrl)
     }
 
     fun validateEmail(email: String): Boolean {
@@ -87,29 +72,15 @@ class UserService(
     }
 
     fun listUsers(): List<UserDTO> =
-        userRepository.findAll().map { (id, user) -> UserDTO.fromEntity(id, user) }
+        userRepository.findAll().map { user -> user.toDTO() }
 
     fun getUserByEmail(email: String): UserDTO? {
-        val userModel: User? = userRepository.findByEmail(email)
-
-        if (userModel != null) {
-            return UserDTO(
-                id = userModel.id,
-                fullName = userModel.fullName,
-                email = userModel.email,
-                role = userModel.role,
-                document = userModel.document,
-                faceImageId = userModel.faceImageId ?: "",
-                faceToken = userModel.faceToken,
-            )
-        }
-
-        return null
+        return userRepository.findByEmail(email)?.toDTO()
     }
 
-    fun getUserById(id: String): UserDTO? =
-        userRepository.findById(id)?.let { user -> UserDTO.fromEntity(id, user) }
-
+    fun getUserById(id: String): UserDTO? {
+        return userRepository.findById(id)?.toDTO()
+    }
     fun deleteUser(id: String): Boolean = userRepository.delete(id)
 
     fun checkPassword(rawPassword: String, encodedPassword: String): Boolean =
