@@ -46,9 +46,4 @@ data class User(
 
 }
 
-enum class Role {
-    MEMBER,
-    VALIDATOR,
-    ADMIN
-}
 
