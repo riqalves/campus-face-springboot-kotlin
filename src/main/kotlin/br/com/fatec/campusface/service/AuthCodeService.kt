@@ -65,10 +65,10 @@ class AuthCodeService(
             id = this.id,
             fullName = this.fullName,
             email = this.email,
-            role = this.role,
             document = this.document,
             faceImageId = this.faceImageId,
-            faceToken = this.faceToken,
+            createdAt = this.createdAt,
+            updatedAt = this.updatedAt,
         )
     }
 

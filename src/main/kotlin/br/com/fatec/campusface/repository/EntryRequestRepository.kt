@@ -1,7 +1,5 @@
 package br.com.fatec.campusface.repository
 
-import br.com.fatec.campusface.dto.EntryRequestDTO
-import br.com.fatec.campusface.dto.EntryRequestResponseDTO
 import br.com.fatec.campusface.models.EntryRequest
 import br.com.fatec.campusface.models.RequestStatus
 import br.com.fatec.campusface.service.UserService

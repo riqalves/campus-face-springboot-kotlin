@@ -25,7 +25,7 @@ class EntryRequestController(
 
     @PostMapping("/create")
     fun createRequest(
-        @Valid @RequestBody data: EntryRequestCreateDTO
+        @Valid @RequestBody data: EntryRequestCreateDTO,
         authentication: Authentication
     ): ResponseEntity<ApiResponse<EntryRequestResponseDTO>> {
         return try {
@@ -60,146 +60,68 @@ class EntryRequestController(
     }
 
 
-    @GetMapping("/organization/{organizationId}")
-    fun getRequestsByOrganization(@PathVariable hubCode: String): ResponseEntity<ApiResponse<Any>> {
+    /**
+     * Lista todas as solicitações pendentes de um Hub específico.
+     * Acessível para Admins do Hub.
+     */
+    @GetMapping("/organization/{hubCode}")
+    @PreAuthorize("isAuthenticated()")
+    fun listPendingRequests(@PathVariable hubCode: String): ResponseEntity<ApiResponse<List<EntryRequestResponseDTO>>> {
         return try {
-            val requests = entryRequestService.listPendingRequests(organizationId)
-            ApiResponse("Pedidos encontrados", true, requests)
-            ResponseEntity.status(HttpStatus.OK)
-                .body(
-                    ApiResponse(
-                        success = true,
-                        message = "Pedidos encontrados",
-                        data = requests
-                    )
+            // TODO: Idealmente, verificar aqui ou no serviço se o usuário logado é ADMIN deste hubCode
+            val requests = entryRequestService.listPendingRequests(hubCode)
+
+            ResponseEntity.ok(
+                ApiResponse(
+                    success = true,
+                    message = "Solicitações pendentes encontradas.",
+                    data = requests
                 )
+            )
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(
-                    ApiResponse(
-                        success = false,
-                        message = "Erro ao buscar pedidos: ${e.message}",
-                        data = ""
-                    )
-                )
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ApiResponse(success = false, message = e.message, data = null)
+            )
         }
     }
 
-    @GetMapping("/{requestId}")
-    fun getRequestById(@PathVariable requestId: String): ResponseEntity<ApiResponse<Any>> {
-        return try {
-            val request = entryRequestService.getRequestById(requestId)
-            if (request != null) {
-                ResponseEntity.status(HttpStatus.OK)
-                    .body(
-                        ApiResponse(
-                            success = true,
-                            message = "Solicitação encontrada",
-                            data = request
-                        )
-                    )
-            } else {
-                ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(
-                        ApiResponse(
-                            success = false,
-                            message = "Solicitação não encontrada",
-                            data = ""
-                        )
-                    )
-            }
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(
-                    ApiResponse(
-                        success = false,
-                        message = "Erro ao buscar pedido $e",
-                        data = ""
-                    )
-                )
-        }
-    }
 
     @PostMapping("/{requestId}/approve")
-    fun approveRequest(
-        @PathVariable requestId: String,
-        @RequestBody entryRequestResponseDTO: EntryRequestResponseDTO
-    ): ResponseEntity<ApiResponse<Any>> {
+    fun approveRequest(@PathVariable requestId: String): ResponseEntity<ApiResponse<Void>> {
         return try {
-            println("DEBUG - EntryRequestController $entryRequestResponseDTO")
-            val user = userService.getUserById(requestId)
-            val entryRequestDTO = EntryRequestDTO(
-                id = requestId,
-                user = user,
-                organizationId = entryRequestResponseDTO.organizationId,
-                status = "APPROVED",
+            // TODO: Veririficar se o usuario logado e admin da org dessa requisicao
+            entryRequestService.approveRequest(requestId)
+
+            ResponseEntity.ok(
+                ApiResponse(success = true, message = "Solicitacao aprovada com sucesso", data = null)
             )
-            val entryRequestWithId = entryRequestResponseDTO.copy(id = requestId)
-            println("DEBUG - EntryRequestController $entryRequestDTO")
-
-            val member = entryRequestService.approveRequest(entryRequestWithId)
-            println("DEBUG - EntryRequestController MEMBER: $member")
-
-            return if (member == null) {
-
-                ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                    ApiResponse(
-                        success = false,
-                        message = "Erro ao aprovar solicitação ",
-                        data = ""
-                    )
-                )
-            } else {
-                ResponseEntity.status(HttpStatus.CREATED).body(
-                    ApiResponse(
-                        success = true,
-                        message = "Solicitação aprovada",
-                        data = member
-                    )
-                )
-            }
-        } catch (e: Exception) {
-            println("Error on approveRequest: ${e.message}")
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                ApiResponse(
-                    message = "Ocorreu um erro ao registrar a solicitação ${e.message}",
-                    success = false,
-                    data = ""
-                )
+        }catch (e:Exception){
+            e.printStackTrace()
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ApiResponse(success = false, message = "Erro ao aprovar: ${e.message}", data = null)
             )
         }
     }
 
 
     @PostMapping("/{requestId}/reject")
-// @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     fun rejectRequest(@PathVariable requestId: String): ResponseEntity<ApiResponse<Void>> {
         return try {
-
+            //TODO: verificar se o usuario logado é admin da organizacao dessa request
             entryRequestService.rejectRequest(requestId)
-
             ResponseEntity.ok(
-                ApiResponse(
-                    success = true,
-                    message = "Solicitação rejeitada com sucesso.",
-                    data = null
-                )
+                ApiResponse(success = true, message = "Solicitacao rejeitada", data = null)
             )
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                    ApiResponse(
-                        success = false,
-                        message = "Erro ao rejeitar pedido: ${e.message}",
-                        data = null
-                    )
-                )
+        }catch (e: Exception){
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ApiResponse(success = false, message ="Erro ao rejeitar ${e.message}", data = null)
+            )
         }
     }
 
 
     @GetMapping("/whoami")
-    @PreAuthorize("isAuthenticated()")
     fun whoAmI(authentication: Authentication): ResponseEntity<ApiResponse<Any>> {
         try {
 
