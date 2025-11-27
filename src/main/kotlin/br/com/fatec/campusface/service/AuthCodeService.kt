@@ -16,7 +16,6 @@ class AuthCodeService(
     private val authCodeRepository: AuthCodeRepository,
     private val userRepository: UserRepository,
     private val organizationRepository: OrganizationRepository,
-    private val facePlusPlusService: FacePlusPlusService
 ) {
 
     /**
@@ -57,6 +56,7 @@ class AuthCodeService(
 
         return user.toDTO()
     }
+
     /**
      * Função de extensão privada para converter um User em um UserDTO.
      */
@@ -70,25 +70,5 @@ class AuthCodeService(
             createdAt = this.createdAt,
             updatedAt = this.updatedAt,
         )
-    }
-
-    fun identifyUserByFace(organizationId: String, imageFile: MultipartFile): UserDTO? {
-        // 1. Busca a organização para obter o faceSetToken
-        val organization = organizationRepository.findById(organizationId)
-            ?: throw IllegalStateException("Organização não encontrada.")
-        val faceSetToken = organization.faceSetToken
-            ?: throw IllegalStateException("Organização não configurada para reconhecimento facial.")
-
-        // 2. Busca o rosto na coleção
-        val matchedFaceToken = facePlusPlusService.searchFaceInFaceSet(faceSetToken, imageFile)
-            ?: return null // Retorna nulo se não houver match
-
-        // 3. Usa o face_token para encontrar o usuário
-        val user = userRepository.findByFaceToken(matchedFaceToken)
-            ?: throw IllegalStateException("Usuário correspondente ao rosto não encontrado no banco de dados.")
-
-        // 4. Retorna o DTO do usuário encontrado
-        // (Você precisaria injetar o CloudinaryService aqui ou criar um conversor de DTO)
-        return user.toDTO() // Supondo que você tenha um método de conversão
     }
 }
