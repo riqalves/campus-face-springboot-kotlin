@@ -6,6 +6,7 @@ data class AuthCode(
     val id: String = "",
     val code: String = "",
     val userId: String = "",
+    val organizationId: String = "",
     val expirationTime: Instant = Instant.now(),
     val valid: Boolean = true
 )

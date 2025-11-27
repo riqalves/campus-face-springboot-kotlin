@@ -24,23 +24,29 @@ class AuthCodeRepository(private val firestore: Firestore) {
             .toObjects(AuthCode::class.java).firstOrNull()
     }
 
-    // Invalida um código após ele ser usado
     fun invalidateCode(id: String) {
         collection.document(id).update("valid", false).get()
     }
 
-    // Invalida todos os códigos antigos de um membro antes de gerar um novo
-    fun invalidatePreviousCodes(userId: String) {
+    /**
+     * Invalida códigos anteriores DESTA organização para este usuário.
+     * Isso impede que ele gere 50 códigos válidos ao mesmo tempo para o mesmo lugar.
+     */
+    fun invalidatePreviousCodes(userId: String, organizationId: String) {
         val batch = firestore.batch()
-        // Alterado para buscar por "userId"
+
         val query = collection
             .whereEqualTo("userId", userId)
+            .whereEqualTo("organizationId", organizationId)
             .whereEqualTo("valid", true)
             .get().get()
 
         query.documents.forEach { doc ->
             batch.update(doc.reference, "valid", false)
         }
-        batch.commit().get()
+
+        if (!query.isEmpty) {
+            batch.commit().get()
+        }
     }
 }

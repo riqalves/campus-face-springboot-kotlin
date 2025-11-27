@@ -43,6 +43,58 @@ class UserService(
         return savedUser.toDTO()
     }
 
+    fun updateProfileImage(userId:String,  imageFile: MultipartFile):UserDTO {
+        val user = userRepository.findById(userId)
+            ?: throw IllegalArgumentException("Usuario nao encontrado")
+        validateImage(imageFile)
+
+        //Se tiver foto antiga deleta do cloudinary
+        user.faceImageId?.let { cloudinaryService.delete(it) }
+
+        val processedImageBytes = imageProcessingService.processImageForApi(imageFile)
+        val uploadResult = cloudinaryService.upload(processedImageBytes)
+        val newPublicId = uploadResult["public_id"]
+            ?:throw IllegalStateException("Erro no upload da imagem")
+
+        val updatedUser = user.copy(faceImageId = newPublicId)
+        userRepository.save(updatedUser)
+        return updatedUser.toDTO()
+    }
+
+
+
+    fun listUsers(): List<UserDTO> =
+        userRepository.findAll().map { user -> user.toDTO() }
+
+    fun getUserByEmail(email: String): UserDTO? {
+        return userRepository.findByEmail(email)?.toDTO()
+    }
+
+    fun getUserById(id: String): UserDTO? {
+        return userRepository.findById(id)?.toDTO()
+    }
+
+    fun deleteUser(id: String): Boolean {
+        val user = userRepository.findById(id)
+        // Se tiver foto, deleta do Cloudinary
+        user?.faceImageId?.let { cloudinaryService.delete(it) }
+
+        return userRepository.delete(id)
+    }
+
+    fun validateEmail(email: String): Boolean {
+        val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
+        return emailRegex.matches(email)
+    }
+
+
+    private fun User.toDTO(): UserDTO {
+        // Gera URL temporária apenas se tiver imagem
+        val temporaryImageUrl = this.faceImageId?.let { publicId ->
+            cloudinaryService.generateSignedUrl(publicId)
+        }
+        return UserDTO.fromEntity(this, temporaryImageUrl)
+    }
 
     private fun validateImage(imageFile: MultipartFile) {
         // Validação de tipo de arquivo
@@ -58,31 +110,4 @@ class UserService(
         }
     }
 
-    private fun User.toDTO(): UserDTO {
-        // Gera URL temporária apenas se tiver imagem
-        val temporaryImageUrl = this.faceImageId?.let { publicId ->
-            cloudinaryService.generateSignedUrl(publicId)
-        }
-        return UserDTO.fromEntity(this, temporaryImageUrl)
-    }
-
-    fun validateEmail(email: String): Boolean {
-        val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
-        return emailRegex.matches(email)
-    }
-
-    fun listUsers(): List<UserDTO> =
-        userRepository.findAll().map { user -> user.toDTO() }
-
-    fun getUserByEmail(email: String): UserDTO? {
-        return userRepository.findByEmail(email)?.toDTO()
-    }
-
-    fun getUserById(id: String): UserDTO? {
-        return userRepository.findById(id)?.toDTO()
-    }
-    fun deleteUser(id: String): Boolean = userRepository.delete(id)
-
-    fun checkPassword(rawPassword: String, encodedPassword: String): Boolean =
-        passwordEncoder.matches(rawPassword, encodedPassword)
 }
