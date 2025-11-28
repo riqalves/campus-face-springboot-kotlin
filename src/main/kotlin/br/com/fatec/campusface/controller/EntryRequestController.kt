@@ -8,6 +8,7 @@ import br.com.fatec.campusface.models.User
 import org.springframework.security.access.prepost.PreAuthorize
 import br.com.fatec.campusface.service.EntryRequestService
 import br.com.fatec.campusface.service.UserService
+import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -169,5 +170,21 @@ class EntryRequestController(
                 )
             )
         }
+    }
+
+    @GetMapping("/my-requests")
+    @Operation(summary = "Lista minhas solicitações", description = "Retorna o histórico de solicitações de entrada do usuário logado.")
+    fun listMyRequests(authentication: Authentication): ResponseEntity<ApiResponse<List<EntryRequestResponseDTO>>> {
+        val user = authentication.principal as User
+
+        val requests = entryRequestService.listUserRequests(user.id)
+
+        return ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                message = "Histórico de solicitações recuperado.",
+                data = requests
+            )
+        )
     }
 }

@@ -49,4 +49,15 @@ class EntryRequestRepository(private val firestore: Firestore) {
     fun delete(id: String) {
         collection.document(id).delete().get()
     }
+
+    // Busca todas as solicitações feitas por um usuário específico
+    fun findByUserId(userId: String): List<EntryRequest> {
+        val snapshot = collection
+            .whereEqualTo("userId", userId)
+            // .orderBy("requestedAt", Query.Direction.DESCENDING) // Opcional: ordenar por data se criar índice no Firestore
+            .get()
+            .get()
+
+        return snapshot.documents.mapNotNull { it.toObject(EntryRequest::class.java) }
+    }
 }

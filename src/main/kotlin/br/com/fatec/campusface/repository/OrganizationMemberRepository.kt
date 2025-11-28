@@ -76,17 +76,17 @@ class OrganizationMemberRepository(private val firestore: Firestore) {
     }
 
     /**
-     * Busca membros de uma organização filtrando por Role.
-     * Ex: Encontrar todos os ADMINs para enviar notificações.
+     * Busca membros de uma organização filtrando pelo cargo (Role).
      */
     fun findByOrganizationIdAndRole(organizationId: String, role: Role): List<OrganizationMember> {
         val snapshot = collection
             .whereEqualTo("organizationId", organizationId)
-            .whereEqualTo("role", role.name) // Firestore salva Enum como String
+            .whereEqualTo("role", role.name)
             .get()
             .get()
+
         return snapshot.documents.mapNotNull { doc ->
-            doc.toObject(OrganizationMember::class.java)?.copy(id = doc.id)
+            doc.toObject(OrganizationMember::class.java).copy(id = doc.id)
         }
     }
 

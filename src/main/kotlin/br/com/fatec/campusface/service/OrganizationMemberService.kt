@@ -18,13 +18,18 @@ class OrganizationMemberService(
 ) {
 
     /**
-     * Lista todos os membros de uma organização específica.
-     * Retorna o DTO completo com os dados do usuário e URL da foto assinada.
+     * Lista membros de uma organização, opcionalmente filtrando por Role.
      */
-    fun getAllMembers(organizationId: String): List<OrganizationMemberDTO> {
-        val members = memberRepository.findAllByOrganizationId(organizationId)
+    fun getAllMembers(organizationId: String, role: Role? = null): List<OrganizationMemberDTO> {
+        val members = if (role != null) {
+            memberRepository.findByOrganizationIdAndRole(organizationId, role)
+        } else {
+            memberRepository.findAllByOrganizationId(organizationId)
+        }
 
-        // Otimização: Buscar todos os usuários de uma vez para evitar N+1 queries
+        // busca todos os usuários de uma vez
+        if (members.isEmpty()) return emptyList()
+
         val userIds = members.map { it.userId }.distinct()
         val usersMap = userRepository.findAllByIds(userIds).associateBy { it.id }
 

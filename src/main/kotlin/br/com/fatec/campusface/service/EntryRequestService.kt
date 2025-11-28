@@ -76,6 +76,20 @@ class EntryRequestService(
     }
 
     /**
+     * Lista o histórico de solicitações do próprio usuário.
+     */
+    fun listUserRequests(userId: String): List<EntryRequestResponseDTO> {
+        val requests = entryRequestRepository.findByUserId(userId)
+
+        val user = userRepository.findById(userId)
+            ?: throw IllegalStateException("Usuário não encontrado")
+
+        return requests.map { req ->
+            toResponseDTO(req, user)
+        }
+    }
+
+    /**
      * Aprova uma solicitação:
      * 1. Muda status da request para APPROVED.
      * 2. Cria o registro oficial em OrganizationMember.

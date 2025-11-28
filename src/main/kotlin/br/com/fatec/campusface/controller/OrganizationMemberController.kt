@@ -23,9 +23,10 @@ class OrganizationMemberController(
 ) {
 
     @GetMapping("/organization/{organizationId}")
-    @Operation(summary = "Lista todos os membros de uma organização", description = "Requer permissão de ADMIN ou VALIDATOR na organização.")
+    @Operation(summary = "Lista membros de uma organização", description = "Opcionalmente filtre por cargo usando ?role=MEMBER")
     fun listMembers(
         @PathVariable organizationId: String,
+        @RequestParam(required = false) role: Role?,
         authentication: Authentication
     ): ResponseEntity<ApiResponse<List<OrganizationMemberDTO>>> {
         val user = authentication.principal as User
@@ -36,7 +37,9 @@ class OrganizationMemberController(
                 .body(ApiResponse(success = false, message = "Você não tem permissão para visualizar membros desta organização.", data = null))
         }
 
-        val members = memberService.getAllMembers(organizationId)
+        // Passa o filtro para o service
+        val members = memberService.getAllMembers(organizationId, role)
+
         return ResponseEntity.ok(ApiResponse(success = true, message = "Membros listados.", data = members))
     }
 
