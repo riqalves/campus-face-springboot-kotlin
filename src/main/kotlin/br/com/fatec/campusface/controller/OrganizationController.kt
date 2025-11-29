@@ -5,6 +5,7 @@ import br.com.fatec.campusface.models.User
 import br.com.fatec.campusface.service.OrganizationService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -18,7 +19,7 @@ class OrganizationController(private val organizationService: OrganizationServic
     @PostMapping
     @Operation(summary = "Cria uma nova Organização", description = "O usuário logado se torna automaticamente o ADMIN da organização.")
     fun create(
-        @RequestBody orgData: OrganizationCreateDTO,
+        @Valid @RequestBody orgData: OrganizationCreateDTO,
         authentication: Authentication
     ): ResponseEntity<ApiResponse<OrganizationResponseDTO>> {
         return try {
@@ -85,7 +86,7 @@ class OrganizationController(private val organizationService: OrganizationServic
     @Operation(summary = "Atualiza dados da Organização", description = "Requer que o usuário logado seja ADMIN desta organização.")
     fun update(
         @PathVariable id: String,
-        @RequestBody dto: OrganizationUpdateDTO,
+        @Valid @RequestBody dto: OrganizationUpdateDTO,
         authentication: Authentication
     ): ResponseEntity<ApiResponse<OrganizationResponseDTO>> {
         val user = authentication.principal as User

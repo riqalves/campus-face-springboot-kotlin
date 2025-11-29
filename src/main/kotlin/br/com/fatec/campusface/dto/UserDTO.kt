@@ -1,6 +1,8 @@
 package br.com.fatec.campusface.dto
 import br.com.fatec.campusface.models.Role
 import br.com.fatec.campusface.models.User
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotBlank
 import java.time.Instant
 
 
@@ -37,7 +39,11 @@ data class ApiResponse<T>(
 
 
 data class LoginDTO(
+    @field:NotBlank(message = "O email é obrigatório")
+    @field:Email(message = "Formato de email inválido")
     val email: String,
+
+    @field:NotBlank(message = "A senha é obrigatória")
     val password: String
 )
 

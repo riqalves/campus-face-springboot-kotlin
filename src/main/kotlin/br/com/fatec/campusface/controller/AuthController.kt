@@ -9,6 +9,7 @@ import br.com.fatec.campusface.repository.UserRepository
 import br.com.fatec.campusface.service.AuthService
 import br.com.fatec.campusface.service.UserService
 import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -38,7 +39,7 @@ class AuthController() {
     private lateinit var authenticationManager: AuthenticationManager
 
     @PostMapping("/login")
-    fun login(@RequestBody @Validated data: LoginDTO): ResponseEntity<ApiResponse<Map<String, Any>>> {
+    fun login(@RequestBody @Valid data: LoginDTO): ResponseEntity<ApiResponse<Map<String, Any>>> {
         return try {
             if (!userService.validateEmail(data.email)) {
                 return ResponseEntity
@@ -52,13 +53,13 @@ class AuthController() {
                     )
             }
             val usernamePassword = UsernamePasswordAuthenticationToken(data.email, data.password)
-            val auth = authenticationManager.authenticate(usernamePassword)
 
-            val userDetails = auth.principal as UserDetails
             val userDto = userService.getUserByEmail(data.email) ?: throw UsernameNotFoundException("Usuário não encontrado")
 
             val token = authService.generateToken(userDto)
 
+
+            println("DEBUG: $data")
             val responseBody = mapOf(
                 "token" to token,
                 "user" to userDto
@@ -94,13 +95,13 @@ class AuthController() {
         @RequestPart("image", required = false) image: MultipartFile?
     ): ResponseEntity<ApiResponse<Any>> {
         return try {
-
             val userData = User(
                 fullName = fullName,
                 email = email,
                 hashedPassword = password,
                 document = document
             )
+            println("DEBUG: $userData")
 
             val createdUserDto = userService.createUser(userData, image)
 
@@ -116,7 +117,7 @@ class AuthController() {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 ApiResponse(
                     success = false,
-                    message = e.message,
+                    message = "Ocorreu um erro. Argumento Ilegal ${e.message}",
                     data = null
                 )
             )

@@ -1,8 +1,11 @@
 package br.com.fatec.campusface.dto
 import java.time.Instant
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 
 data class GenerateCodeRequest(
-    val organizationId: String // O membro escolhe para qual Org quer gerar o passe
+    @field:NotBlank(message = "O ID da organizacão nao pode ser nulo")
+    val organizationId: String
 )
 
 data class GeneratedCodeResponse(
@@ -11,6 +14,8 @@ data class GeneratedCodeResponse(
 )
 
 data class ValidateCodeRequest(
+    @field:NotBlank(message = "O código é obrigatório")
+    @field:Size(min = 6, max = 6, message = "O código deve ter exatos 6 caracteres")
     val code: String
 )
 
