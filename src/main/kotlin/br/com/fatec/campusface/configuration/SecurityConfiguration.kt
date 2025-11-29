@@ -35,10 +35,11 @@ class SecurityConfiguration() {
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
                     .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                     .requestMatchers(HttpMethod.GET, "/users/allusers").permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                    .requestMatchers("/error").permitAll()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter::class.java)
