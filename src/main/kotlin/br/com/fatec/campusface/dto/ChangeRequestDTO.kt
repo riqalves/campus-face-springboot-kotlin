@@ -18,7 +18,13 @@ data class ChangeRequestResponseDTO(
     val status: RequestStatus,
     val requestedAt: Instant,
 
-    val newFaceImageId: String,
+    val organizationId: String,
 
-    val user: UserDTO
+    val userFullName: String,
+    val currentFaceUrl: String?, // A foto que está valendo hoje
+    val newFaceUrl: String       // A foto que ele quer colocar
+)
+
+data class ReviewRequestDTO(
+    val approved: Boolean // true = APROVAR, false = REJEITAR
 )

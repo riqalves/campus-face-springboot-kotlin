@@ -10,9 +10,21 @@ class ChangeRequestRepository(private val firestore: Firestore) {
     private val collection = firestore.collection("changeRequests")
 
     fun save(request: ChangeRequest): ChangeRequest {
-        val docRef = collection.document()
+        println("DEBUG [Repo] - Salvando ChangeRequest. ID recebido: '${request.id}'")
+
+        val docRef = if (request.id.isNotEmpty()) {
+            println("DEBUG [Repo] - ID existente detectado. Atualizando documento: ${request.id}")
+            collection.document(request.id)
+        } else {
+            println("DEBUG [Repo] - ID vazio. Gerando NOVO documento.")
+            collection.document()
+        }
+
         val requestWithId = request.copy(id = docRef.id)
+
         docRef.set(requestWithId).get()
+
+        println("DEBUG [Repo] - Salvo com sucesso no Firestore. ID Final: ${docRef.id} - Status: ${requestWithId.status}")
         return requestWithId
     }
 
@@ -21,13 +33,16 @@ class ChangeRequestRepository(private val firestore: Firestore) {
         return if (doc.exists()) doc.toObject(ChangeRequest::class.java) else null
     }
 
-    // Para o Admin visualizar as solicitações pendentes
     fun findPendingByOrganizationId(orgId: String): List<ChangeRequest> {
-        return collection
+        println("DEBUG [Repo] - Buscando pendentes para Org: $orgId")
+        val results = collection
             .whereEqualTo("organizationId", orgId)
             .whereEqualTo("status", RequestStatus.PENDING.name)
             .get().get()
             .toObjects(ChangeRequest::class.java)
+
+        println("DEBUG [Repo] - Encontrados ${results.size} pedidos pendentes.")
+        return results
     }
 
     fun delete(id: String) {
