@@ -36,6 +36,8 @@ O sistema gerencia identidades, permissões e validações de acesso, atuando co
 > `Upsert`: Uma operação enviada ao servidor de reconhecimento, que, insere um elemento se não existir, ou altera caso exista.<br />
 > `Delete`: Uma operação enviada ao servidor de reconhecimento, que, deleta um elemento.<br />
 ### Diagrama de sequência
+> Diagrama que exemplifica o fluxo de Change Request e Entry Request, dentro do ecossistema.<br />
+> A operação de checkin é executada diariamente, e somente fornece os dados do servidor de reconhecimento ao backend.<br />
 ![Diagrama](docs/diagrama.png)
 ---
 
@@ -135,6 +137,7 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Acesso: `/swagger-ui.html`
 
 * As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
+
 
 
 
