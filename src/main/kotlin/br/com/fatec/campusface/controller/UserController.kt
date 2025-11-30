@@ -154,7 +154,7 @@ class UserController(private val userService: UserService) {
     ): ResponseEntity<ApiResponse<UserDTO>> {
         //TODO corrigir adicao ao inves de update
         val currentUser = authentication.principal as User
-        println("DEBUG $currentUser, $data")
+        println("DEBUG UPDATE $currentUser, $data")
         // só o próprio usuário pode se atualizar
         val id = currentUser.id
 

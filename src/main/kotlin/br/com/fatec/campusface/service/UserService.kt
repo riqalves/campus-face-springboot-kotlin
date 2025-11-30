@@ -69,6 +69,7 @@ class UserService(
         val user = userRepository.findById(userId)
             ?: throw IllegalArgumentException("Usuário não encontrado.")
 
+        println("DEBUG USERSERVICE - UPDATEUSER: $userId, $data")
         // validação de Email Único (se estiver trocando)
         if (!data.email.isNullOrBlank() && data.email != user.email) {
             val emailOwner = userRepository.findByEmail(data.email)

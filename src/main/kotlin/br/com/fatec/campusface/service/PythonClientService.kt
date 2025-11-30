@@ -16,12 +16,13 @@ class PythonClientService(
 
     /**
      * Verifica se o Totem Python está respondendo.
-     * Endpoint: GET /api/health
+     * Endpoint: GET /api/health (ou apenas checagem de conexão)
      */
     fun checkHealth(client: RegisteredClient): Boolean {
         if (client.ipAddress.isBlank() || client.port.isBlank()) return false
 
-        val url = "http://${client.ipAddress}:${client.port}/api/health"
+        // Tenta bater na raiz ou em um endpoint leve
+        val url = "http://${client.ipAddress}:${client.port}/"
 
         val request = Request.Builder()
             .url(url)
@@ -30,43 +31,30 @@ class PythonClientService(
 
         return try {
             httpClient.newCall(request).execute().use { response ->
-                response.isSuccessful
+                // Aceitamos qualquer resposta (200, 404, 500) como sinal de que o servidor está vivo e alcançável
+                true
             }
         } catch (e: Exception) {
-            // Log de erro de conexão (Timeout, Host Unreachable)
-            println("ERRO Conexão Python (${client.name}): ${e.message}")
+            println("WARN PythonClient: Falha ao conectar em ${client.name} (${client.ipAddress}): ${e.message}")
             false
         }
     }
 
     /**
-     * Envia uma nova face para ser registrada no banco vetorial do Python.
-     * Endpoint: POST /api/create
+     * Envia atualização para o endpoint /upsert do Python.
+     * Serve tanto para criar quanto para atualizar (Protocolo do seu amigo).
      */
-    fun createFace(client: RegisteredClient, userId: String, imageBytes: ByteArray): Boolean {
-        val url = "http://${client.ipAddress}:${client.port}/api/create"
-        return sendMultipartRequest(url, userId, imageBytes)
-    }
+    fun upsertFace(client: RegisteredClient, userId: String, imageBytes: ByteArray): Boolean {
+        // Monta a URL (ex: http://192.168.1.10:3000/upsert)
+        val url = "http://${client.ipAddress}:${client.port}/upsert"
 
-    /**
-     * Atualiza uma face existente no Python.
-     * Endpoint: POST /api/update
-     */
-    fun updateFace(client: RegisteredClient, userId: String, imageBytes: ByteArray): Boolean {
-        val url = "http://${client.ipAddress}:${client.port}/api/update"
-        return sendMultipartRequest(url, userId, imageBytes)
-    }
-
-    // --- Método Privado Auxiliar para evitar duplicação ---
-
-    private fun sendMultipartRequest(url: String, userId: String, imageBytes: ByteArray): Boolean {
         try {
-            // Monta o corpo da requisição como se fosse um formulário HTML com anexo
             val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart("user_id", userId) // O Python espera receber 'user_id'
+                // Nomes dos campos conforme especificação do client Python:
+                .addFormDataPart("Id_user", userId)
                 .addFormDataPart(
-                    "file",
+                    "image", // Nome do campo de arquivo
                     "face.jpg", // Nome do arquivo
                     imageBytes.toRequestBody("image/jpeg".toMediaType())
                 )
@@ -79,13 +67,48 @@ class PythonClientService(
 
             httpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    println("FALHA Python em $url - Code: ${response.code}")
-                     println("Erro Body: ${response.body?.string()}")
+                    println("FALHA Python Upsert em $url - Code: ${response.code}")
+                    // Opcional: Ler o body de erro para debug
+                    // println("Erro Body: ${response.body?.string()}")
                 }
                 return response.isSuccessful
             }
         } catch (e: Exception) {
-            println("ERRO ao enviar para Python ($url): ${e.message}")
+            println("ERRO ao enviar Upsert para Python ($url): ${e.message}")
+            return false
+        }
+    }
+
+    // --- Métodos Legados (Caso ainda precise usar os endpoints antigos separados) ---
+
+    fun createFace(client: RegisteredClient, userId: String, imageBytes: ByteArray): Boolean {
+        val url = "http://${client.ipAddress}:${client.port}/api/create"
+        return sendLegacyMultipartRequest(url, userId, imageBytes)
+    }
+
+    fun updateFace(client: RegisteredClient, userId: String, imageBytes: ByteArray): Boolean {
+        val url = "http://${client.ipAddress}:${client.port}/api/update"
+        return sendLegacyMultipartRequest(url, userId, imageBytes)
+    }
+
+    private fun sendLegacyMultipartRequest(url: String, userId: String, imageBytes: ByteArray): Boolean {
+        try {
+            val requestBody = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("user_id", userId)
+                .addFormDataPart(
+                    "file",
+                    "face.jpg",
+                    imageBytes.toRequestBody("image/jpeg".toMediaType())
+                )
+                .build()
+
+            val request = Request.Builder().url(url).post(requestBody).build()
+
+            httpClient.newCall(request).execute().use { response ->
+                return response.isSuccessful
+            }
+        } catch (e: Exception) {
             return false
         }
     }

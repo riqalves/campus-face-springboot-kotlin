@@ -22,7 +22,8 @@ class EntryRequestService(
     private val organizationMemberRepository: OrganizationMemberRepository,
     private val organizationRepository: OrganizationRepository,
     private val userRepository: UserRepository,
-    private val cloudinaryService: CloudinaryService
+    private val cloudinaryService: CloudinaryService,
+    private val syncService: SyncService
 ) {
 
     /**
@@ -100,29 +101,30 @@ class EntryRequestService(
             ?: throw IllegalArgumentException("Solicitação não encontrada")
 
         if (request.status != RequestStatus.PENDING) {
-            throw IllegalStateException("Esta solicitação já foi processada (Status: ${request.status})")
+            throw IllegalStateException("Esta solicitação já foi processada.")
         }
 
+        // Cria o vinculo no OrganizationMember
         val newMember = OrganizationMember(
             organizationId = request.organizationId,
             userId = request.userId,
             role = request.role,
             status = MemberStatus.ACTIVE,
-            faceImageId = null
+            faceImageId = null // Usa a foto do perfil do usuário (User)
         )
         organizationMemberRepository.save(newMember)
 
+        // atualiza listas na Organization
         when (newMember.role) {
             Role.MEMBER -> organizationRepository.addMemberToOrganization(newMember.organizationId, newMember.userId)
             Role.VALIDATOR -> organizationRepository.addValidatorToOrganization(newMember.organizationId, newMember.userId)
             Role.ADMIN -> organizationRepository.addAdminToOrganization(newMember.organizationId, newMember.userId)
         }
 
-        //  Atualiza o status do pedido
         entryRequestRepository.updateStatus(request.id, RequestStatus.APPROVED)
 
-        // Gatilho de Sincronização (Placeholder)
-        println("TODO: SyncService.notifyNewMember(organizationId=${newMember.organizationId}, userId=${newMember.userId})")
+        // Dispara o Upsert. O Python vai receber a foto e criar o registro no banco vetorial.
+        syncService.syncNewMember(newMember.organizationId, newMember.userId)
     }
 
     /**

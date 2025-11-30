@@ -3,7 +3,7 @@ package br.com.fatec.campusface.models
 import java.time.Instant
 
 data class RegisteredClient(
-    val id: String,
+    val id: String = "",
     val organizationId: String = "",
     val ipAddress: String = "",
     val port: String = "",

@@ -1,21 +1,23 @@
 package br.com.fatec.campusface.dto
 
-import br.com.fatec.campusface.models.ClientStatus
-import java.time.Instant
+
+
+import jakarta.validation.constraints.NotBlank
 
 data class RegisteredClientResponseDTO(
     val id: String,
-    val name: String,
-    val ipAddress: String?,
-    val port: String,
-    val status: ClientStatus,
-    val lastCheckin: Instant
-)
-
-data class ClientCheckinDTO(
     val hubCode: String,
     val ipAddress: String,
     val port: String,
-    val status: ClientStatus,
-    val lastCheckin: Instant
+    val status: String
+)
+
+data class ClientCheckinDTO(
+    @field:NotBlank(message = "O ID do Hub é obrigatório")
+    val hub_id: String,
+
+    @field:NotBlank(message = "O endereço do servidor é obrigatório (IP:PORTA)")
+    val server: String,
+
+    val token: String?
 )

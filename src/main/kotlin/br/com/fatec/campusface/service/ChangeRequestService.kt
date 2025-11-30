@@ -104,20 +104,17 @@ class ChangeRequestService(
     }
 
     private fun approve(request: ChangeRequest) {
-        println("DEBUG [Service] - APROVANDO solicitação ${request.id}...")
-
         val member = memberRepository.findByUserIdAndOrganizationId(request.userId, request.organizationId)
             ?: throw IllegalStateException("Membro não encontrado.")
 
-        println("DEBUG [Service] - Atualizando OrganizationMember ${member.id} com nova face: ${request.newFaceImageId}")
+        // Atualiza o OrganizationMember com a NOVA foto
         memberRepository.updateFaceImageId(member.id, request.newFaceImageId)
 
-        // IMPORTANTE: Aqui garantimos que o ID é mantido para o Update no Repo
+        //  atualiza Status do Pedido
         val updatedReq = request.copy(status = RequestStatus.APPROVED, updatedAt = Instant.now())
         changeRequestRepository.save(updatedReq)
 
-        println("DEBUG [Service] - Notificando SyncService...")
-        syncService.notifyMemberUpdate(request.organizationId, request.userId)
+        syncService.syncNewMember(request.organizationId, request.userId)
     }
 
     private fun reject(request: ChangeRequest) {

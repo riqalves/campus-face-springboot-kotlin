@@ -1,91 +1,112 @@
 package br.com.fatec.campusface.service
 
 import br.com.fatec.campusface.models.ClientStatus
+import br.com.fatec.campusface.models.RegisteredClient
 import br.com.fatec.campusface.repository.RegisteredClientRepository
 import br.com.fatec.campusface.repository.UserRepository
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
+import java.io.IOException
 
 @Service
 class SyncService(
     private val registeredClientRepository: RegisteredClientRepository,
     private val userRepository: UserRepository,
     private val cloudinaryService: CloudinaryService,
-    private val pythonClientService: PythonClientService
+    private val httpClient: OkHttpClient
 ) {
 
     /**
-     * Notifica os totens que um novo membro foi aprovado.
-     * Deve ser chamado pelo EntryRequestService.approveRequest().
-     * * @Async é recomendado aqui para não travar a resposta HTTP do Admin enquanto fazemos upload para N totens.
-     * (Requer @EnableAsync na classe Application)
+     * Ponto de entrada: Chamado pelo EntryRequestService ou ChangeRequestService.
+     * Busca os dados e dispara o envio para todos os totens online da organização.
      */
     @Async
-    fun notifyNewMember(organizationId: String, userId: String) {
-        println("SYNC - Iniciando sincronização de NOVO MEMBRO: $userId para Org: $organizationId")
-        syncFaceToClients(organizationId, userId, isUpdate = false)
-    }
+    fun syncNewMember(organizationId: String, userId: String) {
+        val activeClients = registeredClientRepository.findByOrganizaitonIdAndStatus(organizationId, ClientStatus.ONLINE)
+        println("DEBUG (Sync): Encontrados ${activeClients.size} clientes online para o Hub $organizationId")
+        if (activeClients.isEmpty()) {
+            println("AVISO (Sync): Nenhum cliente Python online para o Hub $organizationId")
+            return
+        }
 
-    /**
-     * Notifica os totens que um membro atualizou sua foto.
-     * Deve ser chamado pelo UserController.updateProfileImage() (se o usuário for membro).
-     */
-    @Async
-    fun notifyMemberUpdate(organizationId: String, userId: String) {
-        println("SYNC - Iniciando sincronização de UPDATE MEMBRO: $userId para Org: $organizationId")
-        syncFaceToClients(organizationId, userId, isUpdate = true)
-    }
-
-    private fun syncFaceToClients(organizationId: String, userId: String, isUpdate: Boolean) {
-        // 1. Busca dados do usuário
+        // 2. Busca o Usuário e a Foto
         val user = userRepository.findById(userId)
         if (user == null) {
-            println("ERRO Sync: Usuário $userId não encontrado.")
+            println("ERRO (Sync): Usuário $userId não encontrado.")
             return
         }
 
         val faceId = user.faceImageId
         if (faceId.isNullOrBlank()) {
-            println("WARN Sync: Usuário $userId não tem foto cadastrada. Ignorando sync.")
+            println("AVISO (Sync): Usuário $userId não tem foto cadastrada. Ignorando sync.")
             return
         }
 
-        // 2. Busca todos os totens ONLINE dessa organização
-        // Nota: Utilizando o método existente no repositório (com o typo 'Organizaiton' mantido)
-        val clients = registeredClientRepository.findByOrganizaitonIdAndStatus(organizationId, ClientStatus.ONLINE)
-
-        if (clients.isEmpty()) {
-            println("INFO Sync: Nenhum totem online para a organização $organizationId.")
-            return
-        }
-
-        // 3. Baixa a imagem do Cloudinary (Bytes) UMA vez para replicar para N totens
-        val url = cloudinaryService.generateSignedUrl(faceId)
+        // 3. Baixa os bytes da imagem do Cloudinary
         val imageBytes: ByteArray
         try {
-            imageBytes = cloudinaryService.downloadImageFromUrl(url)
+            val signedUrl = cloudinaryService.generateSignedUrl(faceId)
+            imageBytes = cloudinaryService.downloadImageFromUrl(signedUrl)
         } catch (e: Exception) {
-            println("ERRO Sync: Falha ao baixar imagem do Cloudinary: ${e.message}")
+            println("ERRO (Sync): Falha ao baixar imagem do Cloudinary: ${e.message}")
             return
         }
 
-        // 4. Envia para cada Totem
-        clients.forEach { client ->
-            try {
-                val success = if (isUpdate) {
-                    pythonClientService.updateFace(client, userId, imageBytes)
-                } else {
-                    pythonClientService.createFace(client, userId, imageBytes)
-                }
+        // 4. Monta o Corpo da Requisição (Multipart com ARQUIVO)
+        // Isso cria o payload uma única vez para enviar a todos
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("Id_user", userId) // Nome esperado pelo Python
+            .addFormDataPart(
+                "image", // Nome do campo esperado pelo Python
+                "face.jpg", // Nome do arquivo (OBRIGATÓRIO para ser tratado como upload)
+                imageBytes.toRequestBody("image/jpeg".toMediaType())
+            )
+            .build()
 
-                if (success) {
-                    println("SUCCESS Sync: Face sincronizada com o totem ${client.name} (${client.ipAddress})")
-                } else {
-                    println("FAIL Sync: Totem ${client.name} rejeitou a sincronização.")
-                }
-            } catch (e: Exception) {
-                println("ERRO Sync: Falha de comunicação com totem ${client.name}: ${e.message}")
-            }
+        // 5. Envia para cada totem
+        activeClients.forEach { client ->
+            sendUpsertRequest(client, requestBody)
         }
+    }
+
+    /**
+     * Envia a requisição HTTP para um cliente específico.
+     */
+    private fun sendUpsertRequest(client: RegisteredClient, requestBody: MultipartBody) {
+        val url = "http://${client.ipAddress}:${client.port}/upsert"
+        val request = Request.Builder().url(url).post(requestBody).build()
+
+        try {
+            println("DEBUG (Sync): Enviando face para ${client.name} ($url)...")
+
+            httpClient.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    println("SUCESSO (Sync): Face sincronizada com ${client.name}.")
+                } else {
+                    println("ERRO (Sync): Cliente ${client.name} rejeitou (Code: ${response.code}).")
+                }
+            }
+        } catch (e: IOException) {
+            // Se der erro de rede (Timeout, Connection Refused), marca como fora do ar
+            println("ERRO FATAL (Sync): Falha ao conectar com ${client.name}: ${e.message}")
+            markClientAsUnreachable(client)
+        } catch (e: Exception) {
+            println("ERRO (Sync): Erro genérico ao enviar para ${client.name}: ${e.message}")
+        }
+    }
+
+    /**
+     * Marca o cliente como UNREACHABLE no banco de dados para evitar tentar enviar de novo.
+     */
+    private fun markClientAsUnreachable(client: RegisteredClient) {
+        println("INFO (Sync): Marcando cliente ${client.name} (ID: ${client.id}) como UNREACHABLE.")
+        val updatedClient = client.copy(status = ClientStatus.UNREACHABLE)
+        registeredClientRepository.save(updatedClient)
     }
 }

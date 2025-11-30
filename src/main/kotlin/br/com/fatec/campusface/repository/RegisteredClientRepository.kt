@@ -26,7 +26,7 @@ class RegisteredClientRepository(private val firestore: Firestore) {
      */
     fun findByOrganizaitonIdAndStatus(organizationId: String, status: ClientStatus): List<RegisteredClient> {
         val snapshot = collection
-            .whereEqualTo("organizaiton.id", organizationId)
+            .whereEqualTo("organizationId", organizationId)
             .whereEqualTo("status", status.name)
             .get().get()
         return snapshot.documents.mapNotNull{it.toObject(RegisteredClient::class.java)}
