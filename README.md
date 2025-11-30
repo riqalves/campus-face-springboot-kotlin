@@ -23,7 +23,7 @@ O sistema gerencia identidades, permissões e validações de acesso, atuando co
 * **Armazenamento de Imagens:** Cloudinary
 * **Documentação:** SpringDoc OpenAPI (Swagger)
 * **Segurança:** Spring Security + JWT (HMAC256)
-* **IoT:** Python
+* **Edge Computing:** Python
 
 ---
 
@@ -135,4 +135,5 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Acesso: `/swagger-ui.html`
 
 * As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
+
 
