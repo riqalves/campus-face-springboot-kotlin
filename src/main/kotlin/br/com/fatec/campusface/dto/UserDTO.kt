@@ -3,6 +3,7 @@ import br.com.fatec.campusface.models.Role
 import br.com.fatec.campusface.models.User
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import java.time.Instant
 
 
@@ -34,6 +35,20 @@ data class UserDTO(
     }
 }
 
+
+data class UserUpdateDTO(
+    @field:Size(min = 3, message = "O nome deve ter no mínimo 3 caracteres")
+    val fullName: String?,
+
+    @field:Email(message = "Formato de email inválido")
+    val email: String?,
+
+    @field:Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
+    val password: String?,
+
+    val document: String?,
+
+)
 
 
 data class ApiResponse<T>(

@@ -12,7 +12,11 @@ class UserRepository(private val firestore: Firestore) {
     private val collection = firestore.collection("users")
 
     fun save(user: User): User {
-        val docRef = collection.document()
+        val docRef = if (user.id.isNotEmpty()) {
+            collection.document(user.id)
+        } else {
+            collection.document()
+        }
 
         val userWithId = user.copy(id = docRef.id)
 

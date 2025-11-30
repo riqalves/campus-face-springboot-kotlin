@@ -1,6 +1,7 @@
 package br.com.fatec.campusface.service
 
 import br.com.fatec.campusface.dto.UserDTO
+import br.com.fatec.campusface.dto.UserUpdateDTO
 import br.com.fatec.campusface.models.User
 import br.com.fatec.campusface.repository.UserRepository
 import org.springframework.beans.factory.annotation.Value
@@ -58,6 +59,43 @@ class UserService(
 
         val updatedUser = user.copy(faceImageId = newPublicId)
         userRepository.save(updatedUser)
+        return updatedUser.toDTO()
+    }
+
+    /**
+     * Atualiza os dados cadastrais do usuário (Nome, Email, Senha, Documento).
+     */
+    fun updateUser(userId: String, data:  UserUpdateDTO): UserDTO {
+        val user = userRepository.findById(userId)
+            ?: throw IllegalArgumentException("Usuário não encontrado.")
+
+        // validação de Email Único (se estiver trocando)
+        if (!data.email.isNullOrBlank() && data.email != user.email) {
+            val emailOwner = userRepository.findByEmail(data.email)
+            if (emailOwner != null && emailOwner.id != userId) {
+                throw IllegalArgumentException("Este e-mail já está em uso por outro usuário.")
+            }
+        }
+
+
+        // atualização dos campos Mantém o antigo se o novo for nulo
+        val updatedUser = user.copy(
+            fullName = if (!data.fullName.isNullOrBlank()) data.fullName else user.fullName,
+            email = if (!data.email.isNullOrBlank()) data.email else user.email,
+            document = if (!data.document.isNullOrBlank()) data.document else user.document,
+
+            // Só criptografa se a senha foi enviada
+            hashedPassword = if (!data.password.isNullOrBlank()) {
+                passwordEncoder.encode(data.password)
+            } else {
+                user.hashedPassword
+            },
+
+            updatedAt = java.time.Instant.now()
+        )
+
+        userRepository.save(updatedUser)
+
         return updatedUser.toDTO()
     }
 
