@@ -28,7 +28,7 @@ O sistema gerencia identidades, permissões e validações de acesso, atuando co
 ---
 
 ## 🛠️ Edge Computing - Server de reconhecimento local
-> **Importante:** Conforme alinhado e autorizado pelo professor, neste projeto **utilizamos ChromaDB para fazer o gerenciamento dos embeddings**.<br />
+> **Importante:** Conforme alinhado e autorizado pelo professor, neste projeto **utilizamos um sistema feito em Python como Edge Computing, utilizando o ChromaDB para fazer o gerenciamento dos embeddings**.<br />
 > Dessa forma optamos por fazer um sistema interno de gerenciamento das imagens dos rostos, com 5 nomenclaturas importantes<br />
 > `Change Request`: Uma solicitação de mudança de imagem, que, quando aceita, é propagada nos servidores.<br />
 > `Entry Request`: Uma solicitação de entrada, que, quando aceita, é propagada nos servidores.<br />
@@ -135,5 +135,6 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Acesso: `/swagger-ui.html`
 
 * As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
+
 
 
