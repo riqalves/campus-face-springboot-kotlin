@@ -23,7 +23,20 @@ O sistema gerencia identidades, permissões e validações de acesso, atuando co
 * **Armazenamento de Imagens:** Cloudinary
 * **Documentação:** SpringDoc OpenAPI (Swagger)
 * **Segurança:** Spring Security + JWT (HMAC256)
+* **IoT:** Python
 
+---
+
+## 🛠️ Edge Computing - Server de reconhecimento local
+> **Importante:** Conforme alinhado e autorizado pelo professor, neste projeto **utilizamos ChromaDB para fazer o gerenciamento dos embeddings**.<br />
+> Dessa forma optamos por fazer um sistema interno de gerenciamento das imagens dos rostos, com 5 nomenclaturas importantes<br />
+> `Change Request`: Uma solicitação de mudança de imagem, que, quando aceita, é propagada nos servidores.<br />
+> `Entry Request`: Uma solicitação de entrada, que, quando aceita, é propagada nos servidores.<br />
+> `CheckIn`: Uma operação executada a cada X tempo, para sincronizar os eventos acima.<br />
+> `Upsert`: Uma operação enviada ao servidor de reconhecimento, que, insere um elemento se não existir, ou altera caso exista.<br />
+> `Delete`: Uma operação enviada ao servidor de reconhecimento, que, deleta um elemento.<br />
+### Diagrama de sequência
+![Diagrama](docs/diagrama.png)
 ---
 
 ## ⚠️ Nota sobre Persistência de Dados
@@ -122,3 +135,4 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Acesso: `/swagger-ui.html`
 
 * As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
+
