@@ -20,6 +20,7 @@ class UserRepository(private val firestore: Firestore) {
 
         val userWithId = user.copy(id = docRef.id)
 
+        
         docRef.set(userWithId).get()
 
         return userWithId

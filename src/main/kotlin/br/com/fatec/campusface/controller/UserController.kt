@@ -138,7 +138,7 @@ class UserController(private val userService: UserService) {
         return ResponseEntity.ok().body(ApiResponse(success = true, message = "aqui esta os usuarios", data = users))
     }
 
-    @PutMapping
+    @PutMapping()
     @Operation(
         summary = "Atualiza dados cadastrais",
         description = "Atualiza nome, email, senha e documento. Campos opcionais."
@@ -149,9 +149,10 @@ class UserController(private val userService: UserService) {
         SwaggerApiResponse(responseCode = "403", description = "Acesso negado")
     ])
     fun updateUser(
-        @Valid data: UserUpdateDTO,
+        @Valid @RequestBody data: UserUpdateDTO,
         authentication: Authentication
     ): ResponseEntity<ApiResponse<UserDTO>> {
+        println("DEBUG RECEBIDO: Nome=${data.fullName}, Email=${data.email}")
         //TODO corrigir adicao ao inves de update
         val currentUser = authentication.principal as User
         println("DEBUG UPDATE $currentUser, $data")
