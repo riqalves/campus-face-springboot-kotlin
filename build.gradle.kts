@@ -3,7 +3,10 @@ plugins {
 	kotlin("plugin.spring") version "1.9.25"
 	id("org.springframework.boot") version "3.5.4"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("jacoco")
 }
+
+
 
 group = "br.com.fatec"
 version = "0.0.1-SNAPSHOT"
@@ -22,13 +25,13 @@ repositories {
 dependencies {
 
 
+	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-	implementation("com.azure:azure-ai-vision-face:1.0.0-beta.2")
 	// https://mvnrepository.com/artifact/com.google.firebase/firebase-admin
 	implementation("com.google.firebase:firebase-admin:9.5.0")
 
@@ -38,15 +41,6 @@ dependencies {
 
 	implementation("net.coobird:thumbnailator:0.4.20")
 
-	implementation("software.amazon.awssdk:rekognition:2.26.10") {
-		exclude(group = "commons-logging", module = "commons-logging")
-	}
-	implementation("software.amazon.awssdk:auth:2.26.10") {
-		exclude(group = "commons-logging", module = "commons-logging")
-	}
-	implementation("software.amazon.awssdk:regions:2.26.10") {
-		exclude(group = "commons-logging", module = "commons-logging")
-	}
 
 
 	implementation("io.jsonwebtoken:jjwt-api:0.12.5")
@@ -63,7 +57,23 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testImplementation("org.springframework.security:spring-security-test")
+	//testes
+	testImplementation("io.mockk:mockk:1.13.8")
+	testImplementation("com.ninja-squad:springmockk:4.0.0")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+// Configuração do JaCoCo
+tasks.test {
+	finalizedBy(tasks.jacocoTestReport) // Gera o relatório logo após rodar os testes
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test) // Garante que os testes rodem antes
+	reports {
+		xml.required.set(true)
+		html.required.set(true) // Gera o site HTML para você tirar print
+	}
 }
 
 kotlin {

@@ -22,7 +22,7 @@ class UserController(private val userService: UserService) {
     @Operation(summary = "Busca dados do usuário", description = "O usuário só pode visualizar o seu próprio perfil.")
     fun getUser(@PathVariable id: String, authentication: Authentication): ResponseEntity<ApiResponse<UserDTO>> {
         val currentUser = authentication.principal as User
-
+        println("DEBUG [getUser] $id, $currentUser")
         // Regra de Segurança: Apenas o próprio dono dos dados pode vê-los
         if (currentUser.id != id) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)

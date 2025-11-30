@@ -2,6 +2,7 @@ package br.com.fatec.campusface.repository
 
 import br.com.fatec.campusface.models.Organization
 import br.com.fatec.campusface.models.OrganizationMember
+import com.google.cloud.firestore.FieldPath
 import com.google.cloud.firestore.FieldValue
 import com.google.cloud.firestore.Firestore
 import org.springframework.stereotype.Repository
@@ -37,6 +38,17 @@ class OrganizationRepository(private val firestore: Firestore) {
     fun findAll(): List<Organization> {
         val docs = collection.get().get().documents
         return docs.mapNotNull { it.toObject(Organization::class.java) }
+    }
+
+
+    fun findAllByIds(ids: List<String>): List<Organization> {
+        if (ids.isEmpty()) return emptyList()
+
+        val snapshot = collection
+            .whereIn(FieldPath.documentId(), ids)
+            .get().get()
+        return snapshot.toObjects(Organization::class.java)
+
     }
 
     fun update(id: String, organization: Organization): Organization? {

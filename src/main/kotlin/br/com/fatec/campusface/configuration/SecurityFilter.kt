@@ -30,7 +30,7 @@ class SecurityFilter : OncePerRequestFilter() {
         val path = request.requestURI
 
         // Ignora rotas públicas
-        if (path.startsWith("/register") || path.startsWith("/login")) {
+        if (path.startsWith("/auth/register") || path.startsWith("/auth/login")) {
             filterChain.doFilter(request, response)
             return
         }
