@@ -21,7 +21,13 @@ data class UserDTO(
             fullName = user.fullName,
             email = user.email,
             document = user.document,
-            faceImageId = user.faceImageId ?: "default.png",
+
+            // ERRADO (O que deve estar agora):
+            // faceImageId = user.faceImageId ?: "default.png",
+
+            // CORRETO (Use a URL assinada se ela existir):
+            faceImageId = signedFaceUrl ?: user.faceImageId ?: "default.png",
+
             createdAt = user.createdAt,
             updatedAt = user.updatedAt,
         )

@@ -81,6 +81,26 @@ class OrganizationService(
 
 
 
+    /**
+     * Lista todas as organizações onde o usuário é membro (ADMIN, VALIDATOR ou MEMBER).
+     */
+    fun listUserHubs(userId: String): List<OrganizationResponseDTO> {
+        // procura os vinculos od user
+        val memberships = organizationMemberRepository.findAllByUserId(userId)
+
+        if (memberships.isEmpty()) {
+            return emptyList()
+        }
+
+        // pega os ids das organizações
+        val organizationIds = memberships.map { it.organizationId }.distinct()
+
+        // detalhes das organizações
+        val organizations = organizationRepository.findAllByIds(organizationIds)
+
+        return organizations.map { org -> hydrateOrganization(org) }
+    }
+
 
     /**
      * Converte Organization (Entity) -> OrganizationResponseDTO.

@@ -82,6 +82,22 @@ class OrganizationController(private val organizationService: OrganizationServic
         }
     }
 
+    @GetMapping("/my-hubs")
+    @Operation(summary = "Listar meus hubs", description = "Retorna todas as organizações das quais o usuário logado faz parte.")
+    fun listMyHubs(authentication: Authentication): ResponseEntity<ApiResponse<List<OrganizationResponseDTO>>> {
+        val user = authentication.principal as User
+
+        val myHubs = organizationService.listUserHubs(user.id)
+
+        return ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                message = "Seus hubs foram recuperados.",
+                data = myHubs
+            )
+        )
+    }
+
     @PutMapping("/{id}")
     @Operation(summary = "Atualiza dados da Organização", description = "Requer que o usuário logado seja ADMIN desta organização.")
     fun update(
