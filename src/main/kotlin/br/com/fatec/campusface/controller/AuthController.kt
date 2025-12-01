@@ -44,22 +44,22 @@ class AuthController() {
             if (!userService.validateEmail(data.email)) {
                 return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body(
-                        ApiResponse(
-                            message = "Padrão de email invalido (@)",
-                            success = false,
-                            data = null
-                        )
-                    )
+                    .body(ApiResponse(message = "Padrão de email invalido (@)", success = false, data = null))
             }
+
+            // 1. Cria o token com as credenciais recebidas
             val usernamePassword = UsernamePasswordAuthenticationToken(data.email, data.password)
 
-            val userDto = userService.getUserByEmail(data.email) ?: throw UsernameNotFoundException("Usuário não encontrado")
+            // 2. CORREÇÃO: Chama o AuthenticationManager para verificar a senha!
+            // Se a senha estiver errada, ele lança AuthenticationException e cai no catch.
+            val auth = authenticationManager.authenticate(usernamePassword)
+
+            // 3. Se passou (não deu erro), busca os dados do usuário
+            val userDto = userService.getUserByEmail(data.email)
+                ?: throw UsernameNotFoundException("Usuário não encontrado")
 
             val token = authService.generateToken(userDto)
 
-
-            println("DEBUG: $data")
             val responseBody = mapOf(
                 "token" to token,
                 "user" to userDto
@@ -73,15 +73,10 @@ class AuthController() {
                 )
             )
         } catch (e: AuthenticationException) {
+            // Agora sim este bloco será alcançado quando a senha for inválida
             ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                    ApiResponse(
-                        message = "Credenciais inválidas: ${e.message}",
-                        success = false,
-                        data = null
-                    )
-                )
+                .body(ApiResponse(message = "Credenciais inválidas: ${e.message}", success = false, data = null))
         }
     }
 
