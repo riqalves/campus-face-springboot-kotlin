@@ -58,7 +58,6 @@ class ValidationControllerTest {
 
         every { authCodeService.generateCode(userId, orgId) } returns responseMock
 
-        // CORREÇÃO: Usamos .principal(auth) em vez de SecurityContextHolder
         mockMvc.perform(post("/validate/qr-code/generate")
             .principal(auth) // <--- AQUI ESTÁ A CORREÇÃO
             .contentType(MediaType.APPLICATION_JSON)

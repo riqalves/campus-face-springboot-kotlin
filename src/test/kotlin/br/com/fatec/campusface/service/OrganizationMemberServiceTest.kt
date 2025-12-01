@@ -1,6 +1,5 @@
 package br.com.fatec.campusface.service
 
-import br.com.fatec.campusface.dto.OrganizationMemberDTO
 import br.com.fatec.campusface.models.MemberStatus
 import br.com.fatec.campusface.models.OrganizationMember
 import br.com.fatec.campusface.models.Role
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.Instant
 
 class OrganizationMemberServiceTest {
 
@@ -53,7 +51,7 @@ class OrganizationMemberServiceTest {
         // Mock do repositório de membros
         every { memberRepository.findAllByOrganizationId(orgId) } returns listOf(member1, member2)
 
-        // Mock do repositório de usuários (Bulk fetch)
+        // Mock do repositório de usuários
         every { userRepository.findAllByIds(listOf(userId1, userId2)) } returns listOf(user1, user2)
 
         // Mock do Cloudinary (para gerar URLs assinadas)
@@ -114,13 +112,13 @@ class OrganizationMemberServiceTest {
         val oldMember = OrganizationMember(id = memberId, userId = userId, role = Role.MEMBER)
         val user = User(id = userId)
 
-        // 1. Busca inicial (encontra o membro)
+        // Busca inicial (encontra o membro)
         every { memberRepository.findById(memberId) } returns oldMember
 
-        // 2. Ação de Update (void)
+        // Ação de Update (void)
         every { memberRepository.updateRole(memberId, Role.ADMIN) } just Runs
 
-        // 3. Busca do usuário para montar o retorno
+        // Busca do usuário para montar o retorno
         every { userRepository.findById(userId) } returns user
         every { cloudinaryService.generateSignedUrl(any()) } returns "url"
 
@@ -129,9 +127,7 @@ class OrganizationMemberServiceTest {
 
         // ASSERT
         assertNotNull(result)
-        // O teste aqui verifica se o fluxo passou, mas como o DTO é montado com o 'oldMember'
-        // (pois não recarregamos do banco no método real por otimização, ou recarregamos?),
-        // Vamos verificar se o updateRole foi chamado no banco.
+
         verify(exactly = 1) { memberRepository.updateRole(memberId, Role.ADMIN) }
     }
 
@@ -168,13 +164,13 @@ class OrganizationMemberServiceTest {
         val initialMember = OrganizationMember(id = memberId, userId = userId, status = MemberStatus.PENDING)
         val user = User(id = userId)
 
-        // 1. Simula encontrar o membro no banco
+        // Simula encontrar o membro no banco
         every { memberRepository.findById(memberId) } returns initialMember
 
-        // 2. Simula a ação de update (void)
+        // Simula a ação de update (void)
         every { memberRepository.updateStatus(memberId, MemberStatus.ACTIVE) } just Runs
 
-        // 3. Simula as dependências do 'getMemberById' (chamado no return)
+        // Simula as dependências do 'getMemberById' (chamado no return)
         every { userRepository.findById(userId) } returns user
         every { cloudinaryService.generateSignedUrl(any()) } returns "url"
 
@@ -183,7 +179,7 @@ class OrganizationMemberServiceTest {
 
         // ASSERT
         assertNotNull(result)
-        // A prova real: verifica se o método de update foi chamado no repositório
+        // verifica se o método de update foi chamado no repositório
         verify(exactly = 1) { memberRepository.updateStatus(memberId, MemberStatus.ACTIVE) }
     }
 

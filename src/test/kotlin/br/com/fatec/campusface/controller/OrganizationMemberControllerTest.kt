@@ -227,10 +227,10 @@ class OrganizationMemberControllerTest {
         val targetUserDto = UserDTO(id = "otherUser", fullName = "Other", email = "o@o.com", document = "2", faceImageId = "f", createdAt = Instant.now(), updatedAt = Instant.now())
         val targetMemberDto = OrganizationMemberDTO(id = targetMemberId, role = Role.MEMBER, status = MemberStatus.ACTIVE, joinedAt = Instant.now(), user = targetUserDto)
 
-        // 1. Serviço retorna o DTO
+        // serviço retorna o DTO
         every { memberService.getMemberById(targetMemberId) } returns targetMemberDto
 
-        // 2. Mock dos métodos auxiliares privados do Controller:
+        // Mock dos métodos auxiliares privados do Controller:
         // 'authenticationOrgId' chama findById
         val targetMemberEntity = OrganizationMember(id = targetMemberId, userId = "otherUser", organizationId = orgId)
         every { memberRepository.findById(targetMemberId) } returns targetMemberEntity

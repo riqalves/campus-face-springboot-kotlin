@@ -3,7 +3,6 @@ package br.com.fatec.campusface.controller
 import br.com.fatec.campusface.configuration.SecurityFilter
 import br.com.fatec.campusface.dto.LoginDTO
 import br.com.fatec.campusface.dto.UserDTO
-import br.com.fatec.campusface.models.User
 import br.com.fatec.campusface.repository.UserRepository
 import br.com.fatec.campusface.service.AuthService
 import br.com.fatec.campusface.service.UserService
@@ -77,7 +76,6 @@ class AuthControllerTest {
 
     @Test
     fun `login deve retornar 401 Unauthorized se email for validado como incorreto pelo service`() {
-        // CORREÇÃO: Usamos um e-mail com FORMATO válido para passar pelo @Valid do Spring (evitando erro 400)
         // O teste é para garantir que a regra de negócio (userService.validateEmail) retorna 401
         val loginData = LoginDTO("email@formato.ok", "123")
 
