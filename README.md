@@ -23,11 +23,11 @@ O sistema gerencia identidades, permissões e validações de acesso, atuando co
 * **Armazenamento de Imagens:** Cloudinary
 * **Documentação:** SpringDoc OpenAPI (Swagger)
 * **Segurança:** Spring Security + JWT (HMAC256)
-* **Edge Computing:** Python
+* **Edge Service:** Python
 
 ---
 
-## 🛠️ Edge Computing - Server de reconhecimento local
+## 🛠️ Edge Service - Server de reconhecimento local
 > **Importante:** Conforme alinhado e autorizado pelo professor, neste projeto **utilizamos um sistema feito em Python como Edge Computing, utilizando o ChromaDB para fazer o gerenciamento dos embeddings**.<br />
 > Dessa forma optamos por fazer um sistema interno de gerenciamento das imagens dos rostos, com 5 nomenclaturas importantes<br />
 > `Change Request`: Uma solicitação de mudança de imagem, que, quando aceita, é propagada nos servidores.<br />
@@ -83,7 +83,7 @@ O sistema gerencia identidades, permissões e validações de acesso, atuando co
     Após iniciar, acesse: `http://localhost:8080/swagger-ui.html`
 
 ---
-## 🚀 Instruções de Instalação e Execução (Edge Computing)
+## 🚀 Instruções de Instalação e Execução (Edge Service)
 
 ### Pré-requisitos
 * Python 3.9.6 instalado
@@ -178,6 +178,7 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Acesso: `/swagger-ui.html`
 
 * As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
+
 
 
 
