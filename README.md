@@ -49,7 +49,7 @@ O sistema gerencia identidades, permissões e validações de acesso, atuando co
 
 ---
 
-## 🚀 Instruções de Instalação e Execução
+## 🚀 Instruções de Instalação e Execução (Backend)
 
 ### Pré-requisitos
 * Java JDK 21 instalado.
@@ -81,6 +81,46 @@ O sistema gerencia identidades, permissões e validações de acesso, atuando co
 
 4.  **Acessar a Documentação (Swagger):**
     Após iniciar, acesse: `http://localhost:8080/swagger-ui.html`
+
+---
+## 🚀 Instruções de Instalação e Execução (Edge Computing)
+
+### Pré-requisitos
+* Python 3.9.6 instalado
+* Ngrok instalado e configurado na máquina (https://ngrok.com)
+
+### Passos para Executar
+1.  **Clonar o repositório:**
+    ```bash
+    git clone [https://github.com/riqalves/campus-face-springboot-kotlin.git](https://github.com/riqalves/campus-face-springboot-kotlin.git)
+    cd campus-face-springboot-kotlin/edge
+    ```
+
+2.  **Configurar e rodar:**
+
+    Selecione o comando apropriado para o seu sistema operacional:
+
+    <details open>
+    <summary><strong>Linux / macOS</strong></summary>
+
+    ```bash
+    python3 -m venv venv        # Criação do ambiente
+    source venv/bin/activate    # Ativação
+    pip install -r requirements.txt # Instala dependências (se houver)
+    python main.py
+    ```
+    </details>
+
+    <details>
+    <summary><strong>Windows (PowerShell/CMD)</strong></summary>
+
+    ```powershell
+    python -m venv venv         # Criação do ambiente
+    .\venv\Scripts\activate     # Ativação
+    pip install -r requirements.txt # Instala dependências (se houver)
+    python main.py
+    ```
+    </details>
 
 ---
 
@@ -138,6 +178,7 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Acesso: `/swagger-ui.html`
 
 * As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
+
 
 
 
