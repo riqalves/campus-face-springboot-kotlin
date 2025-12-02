@@ -99,6 +99,7 @@ O sistema utiliza uma arquitetura híbrida com **Google Firestore** (NoSQL) para
 
 ### Pré-requisitos
 * Python 3.9.6 instalado
+* CMake instalado
 * Ngrok instalado e configurado na máquina (https://ngrok.com)
 
 ### Passos para Executar
@@ -316,3 +317,4 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Acesso: `/swagger-ui.html`
 
 * As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
+
