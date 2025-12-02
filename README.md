@@ -1,4 +1,4 @@
-﻿# CampusFace API - ZL devs
+# CampusFace API - ZL devs
 
 ## 👥 Integrantes do Grupo (ZL devs)
 * **Gabriel Meira**
@@ -10,20 +10,37 @@
 ---
 
 ## 📝 Descrição do Projeto
-O **CampusFace** é uma solução de backend desenvolvida em **Kotlin** com **Spring Boot** para orquestrar o controle de acesso em instituições (Hubs/Campus).
+O **CampusFace** é uma solução completa desenvolvida para orquestrar o controle de acesso em instituições (Hubs/Campus), composta por três camadas principais:
 
-O sistema gerencia identidades, permissões e validações de acesso, atuando como um orquestrador central que sincroniza dados com totens de reconhecimento facial (Python/Edge) e permite validação secundária via QR Code. O projeto utiliza uma arquitetura híbrida com **Google Firestore** (NoSQL) para flexibilidade e velocidade, e **Cloudinary** para armazenamento de imagens faciais.
+* **Backend (Kotlin/Spring Boot):** Orquestra o controle de acesso, gerenciando identidades, permissões e validações.
+* **Edge Service (Python):** Totens de reconhecimento facial que processam localmente os embeddings faciais.
+* **Frontend (Kotlin Multiplatform):** Interface multiplataforma para gerenciamento de perfis, hubs, aprovações e geração de QR Codes.
+
+O sistema utiliza uma arquitetura híbrida com **Google Firestore** (NoSQL) para flexibilidade e velocidade, **Cloudinary** para armazenamento de imagens faciais, e **ChromaDB** no edge para gerenciamento de embeddings.
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
+
+### Backend
 * **Linguagem:** Kotlin (JVM 21)
 * **Framework:** Spring Boot 3.5.4
 * **Banco de Dados:** Google Firebase Firestore (NoSQL)
 * **Armazenamento de Imagens:** Cloudinary
 * **Documentação:** SpringDoc OpenAPI (Swagger)
 * **Segurança:** Spring Security + JWT (HMAC256)
-* **Edge Service:** Python
+
+### Frontend
+* **Linguagem:** Kotlin (Versão mais recente)
+* **Framework:** Compose Multiplatform
+* **Plataformas:** Android, iOS, Desktop (JVM), Web
+* **Arquitetura:** MVVM com ViewModel
+* **Build Tool:** Gradle (Versão mais recente)
+* **Requisitos:** JVM 21, Xcode (para iOS)
+
+### Edge Service
+* **Linguagem:** Python 3.9.6
+* **Banco de Embeddings:** ChromaDB
 
 ---
 
@@ -40,12 +57,6 @@ O sistema gerencia identidades, permissões e validações de acesso, atuando co
 > A operação de *CheckIn* é executada diariamente, e somente fornece os dados do servidor de reconhecimento ao backend.<br />
 
 ![Diagrama](docs/diagrama.png)
----
-
-## ⚠️ Nota sobre Persistência de Dados
-> **Importante:** Conforme alinhado e autorizado pelo professor, este projeto **não utiliza JPA/Hibernate com banco relacional**.
->
-> Em substituição, utilizamos o **Google Firestore**, um banco de dados NoSQL orientado a documentos. Portanto, as anotações `@Entity`, `@Table` e interfaces `JpaRepository` foram substituídas pelas implementações do SDK do Firebase Admin e anotações de serialização nativas.
 
 ---
 
@@ -83,6 +94,7 @@ O sistema gerencia identidades, permissões e validações de acesso, atuando co
     Após iniciar, acesse: `http://localhost:8080/swagger-ui.html`
 
 ---
+
 ## 🚀 Instruções de Instalação e Execução (Edge Service)
 
 ### Pré-requisitos
@@ -92,7 +104,7 @@ O sistema gerencia identidades, permissões e validações de acesso, atuando co
 ### Passos para Executar
 1.  **Clonar o repositório:**
     ```bash
-    git clone [https://github.com/riqalves/campus-face-springboot-kotlin.git](https://github.com/riqalves/campus-face-springboot-kotlin.git)
+    git clone https://github.com/riqalves/campus-face-springboot-kotlin.git
     cd campus-face-springboot-kotlin/edge
     ```
 
@@ -121,6 +133,132 @@ O sistema gerencia identidades, permissões e validações de acesso, atuando co
     python main.py
     ```
     </details>
+
+---
+
+## 🚀 Instruções de Instalação e Execução (Frontend - Kotlin Multiplatform)
+
+### Pré-requisitos
+* Java JDK 21 instalado
+* Gradle (versão mais recente)
+* Kotlin (versão mais recente)
+* **Para iOS:** Xcode instalado (somente macOS)
+* **Para Android:** Android SDK configurado
+* **Para Desktop/Web:** JVM 21
+
+### Estrutura do Projeto
+O frontend utiliza a estrutura padrão do Kotlin Multiplatform:
+```
+frontend/
+├── composeApp/
+│   ├── commonMain/      # Código compartilhado entre todas as plataformas
+│   ├── androidMain/     # Código específico Android
+│   ├── iosMain/         # Código específico iOS
+│   ├── desktopMain/     # Código específico Desktop
+│   └── wasmJsMain/      # Código específico Web
+└── ...
+```
+
+### Funcionalidades Principais
+* **Gerenciamento de Perfil:** Visualização e edição de dados pessoais
+* **Criação de Hubs:** Criação e gerenciamento de organizações/campus
+* **Aprovação de Solicitações:** Aprovação de entry requests e change requests
+* **QR Code Dinâmico:** Geração de QR Codes com tempo de expiração para validação de acesso
+* **Troca de Foto de Perfil:** Upload e atualização de imagem facial
+* **Exibição de Dados:** Visualização de membros, permissões e histórico
+
+### Passos para Executar
+
+1.  **Navegar até o diretório do frontend:**
+    ```bash
+    cd frontend
+    ```
+
+2.  **Configurar Endpoint do Backend:**
+    Edite o arquivo `Constants.kt` localizado em `commonMain` e atualize o endpoint do servidor:
+    ```kotlin
+    object Constants {
+        const val BASE_URL = "http://seu-servidor:8080/api" // Atualize aqui
+    }
+    ```
+
+3.  **Executar por Plataforma:**
+
+    <details open>
+    <summary><strong>Desktop (JVM)</strong></summary>
+
+    ```bash
+    ./gradlew :composeApp:run
+    ```
+    </details>
+
+    <details>
+    <summary><strong>Android</strong></summary>
+
+    Opção 1 - Via Android Studio:
+    * Abra o projeto na pasta `frontend`
+    * Selecione a configuração `androidApp`
+    * Clique em Run
+
+    Opção 2 - Via linha de comando:
+    ```bash
+    ./gradlew :composeApp:installDebug
+    ```
+    </details>
+
+    <details>
+    <summary><strong>iOS (macOS apenas)</strong></summary>
+
+    Opção 1 - Via Xcode:
+    * Abra o projeto iOS gerado em `iosApp/iosApp.xcodeproj`
+    * Selecione o simulador ou dispositivo
+    * Clique em Run
+
+    Opção 2 - Via linha de comando:
+    ```bash
+    ./gradlew :composeApp:iosSimulatorArm64Run
+    ```
+    </details>
+
+    <details>
+    <summary><strong>Web (WASM)</strong></summary>
+
+    ```bash
+    ./gradlew :composeApp:wasmJsBrowserRun
+    ```
+    Acesse: `http://localhost:8080`
+    </details>
+
+4.  **Build para Produção:**
+
+    Para gerar builds de produção:
+    ```bash
+    # Android APK
+    ./gradlew :composeApp:assembleRelease
+    
+    # Desktop (executável)
+    ./gradlew :composeApp:packageDistributionForCurrentOS
+    
+    # iOS (via Xcode)
+    # Abra o Xcode e faça Archive
+    ```
+
+---
+
+## 🎥 Demonstração do Projeto
+
+Assista ao vídeo de demonstração completo do **CampusFace** em funcionamento:
+
+**🔗 [Link do Vídeo de Demonstração](link video)**
+
+> O vídeo apresenta todas as funcionalidades do sistema integrado: Backend (API REST), Edge Service (Reconhecimento Facial) e Frontend Multiplataforma (Android, iOS, Desktop e Web).
+
+---
+
+## ⚠️ Nota sobre Persistência de Dados
+> **Importante:** Conforme alinhado e autorizado pelo professor, este projeto **não utiliza JPA/Hibernate com banco relacional**.
+>
+> Em substituição, utilizamos o **Google Firestore**, um banco de dados NoSQL orientado a documentos. Portanto, as anotações `@Entity`, `@Table` e interfaces `JpaRepository` foram substituídas pelas implementações do SDK do Firebase Admin e anotações de serialização nativas.
 
 ---
 
@@ -178,10 +316,3 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Acesso: `/swagger-ui.html`
 
 * As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
-
-
-
-
-
-
-
