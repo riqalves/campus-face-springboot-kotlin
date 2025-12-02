@@ -1,7 +1,6 @@
 package br.com.fatec.campusface.service
 
 import br.com.fatec.campusface.dto.GeneratedCodeResponse
-import br.com.fatec.campusface.dto.OrganizationMemberDTO
 import br.com.fatec.campusface.dto.ValidationResponseDTO
 import br.com.fatec.campusface.models.AuthCode
 import br.com.fatec.campusface.models.MemberStatus
@@ -16,7 +15,7 @@ import java.time.temporal.ChronoUnit
 class AuthCodeService(
     private val authCodeRepository: AuthCodeRepository,
     private val orgMemberRepository: OrganizationMemberRepository,
-    private val memberService: OrganizationMemberService // Reutilizamos para hidratar o DTO
+    private val orgMemberService: OrganizationMemberService // Reutilizamos para hidratar o DTO
 ) {
 
     /**
@@ -78,7 +77,7 @@ class AuthCodeService(
         val targetMember = orgMemberRepository.findByUserIdAndOrganizationId(authCode.userId, authCode.organizationId)
             ?: return ValidationResponseDTO(false, "Usuário do código não encontrado na organização.", null)
 
-        val memberDto = memberService.getMemberById(targetMember.id)
+        val memberDto = orgMemberService.getMemberById(targetMember.id)
 
         return ValidationResponseDTO(
             valid = true,

@@ -89,25 +89,4 @@ class UserRepository(private val firestore: Firestore) {
         }
     }
 
-    fun findByFaceToken(faceToken: String): User? {
-        val snapshot = collection
-            .whereEqualTo("faceToken", faceToken)
-            .limit(1)
-            .get().get()
-
-        if (snapshot.isEmpty) {
-            return null
-        }
-
-        // Retorna o primeiro (e único) usuário encontrado com este token.
-        return snapshot.documents.first()?.toObject(User::class.java)
-    }
-
-    /**
-     * NOVO: Atualiza o campo faceToken de um usuário.
-     * Será usado quando o usuário for adicionado a um FaceSet.
-     */
-    fun updateFaceToken(userId: String, faceToken: String) {
-        collection.document(userId).update("faceToken", faceToken).get()
-    }
 }

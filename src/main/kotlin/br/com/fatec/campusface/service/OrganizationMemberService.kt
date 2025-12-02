@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service
 class OrganizationMemberService(
     private val memberRepository: OrganizationMemberRepository,
     private val userRepository: UserRepository,
-    private val cloudinaryService: CloudinaryService
+    private val cloudinaryService: CloudinaryService,
+    private val syncService: SyncService
 ) {
 
     /**
@@ -92,10 +93,16 @@ class OrganizationMemberService(
         val member = memberRepository.findById(id)
             ?: throw IllegalArgumentException("Membro não encontrado")
 
+        // Salva os IDs antes de deletar para poder notificar
+        val orgId = member.organizationId
+        val userId = member.userId
+
         memberRepository.delete(id)
 
-        // TODO: Chamar SyncService para remover a face dos totens da organização
-        println("TODO: SyncService - Membro ${member.id} removido. Disparar remoção facial.")
+        // GATILHO DE SYNC (DELETE)
+        syncService.syncMemberDeletion(orgId, userId)
+
+        println("INFO: Membro removido e disparo de sync enviado.")
     }
 
     // --- Métodos Auxiliares ---

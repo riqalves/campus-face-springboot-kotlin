@@ -5,6 +5,9 @@ import br.com.fatec.campusface.dto.ClientCheckinDTO
 import br.com.fatec.campusface.dto.RegisteredClientResponseDTO
 import br.com.fatec.campusface.service.RegisteredClientService
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -19,13 +22,22 @@ class RegisteredClientController(
 ) {
 
     @PostMapping("/checkin")
-    @Operation(summary = "Check-in do Totem", description = "O Python chama isso ao ligar para se registrar.")
+    @Operation(summary = "Check-in do Totem", description = "O Python chama isso ao ligar. Requer Token Bearer no Header e HubCode no Body.")
     fun checkin(
         @Valid @RequestBody data: ClientCheckinDTO,
-        @RequestHeader("Authorization") tokenHeader: String?
+
+        @Parameter(
+            name = "Authorization",
+            description = "Token Bearer do Validador",
+            required = true,
+            `in` = ParameterIn.HEADER,
+            schema = Schema(type = "string")
+        )
+        @RequestHeader("Authorization") tokenHeader: String
     ): ResponseEntity<ApiResponse<RegisteredClientResponseDTO>> {
         return try {
-            // O token pode vir no Header (padrão HTTP) ou no Body (como no exemplo JS do seu amigo)
+
+            println("DEBUG: ENDPOINT CHECKIN: $data")
             val client = clientService.processCheckin(data, tokenHeader)
 
             ResponseEntity.ok(

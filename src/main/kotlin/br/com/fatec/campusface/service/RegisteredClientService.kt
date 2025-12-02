@@ -16,56 +16,55 @@ class RegisteredClientService(
     private val registeredClientRepository: RegisteredClientRepository,
     private val organizationRepository: OrganizationRepository,
     private val memberRepository: OrganizationMemberRepository,
-    private val authService: AuthService // Para validar o token manual se vier no body
+    private val authService: AuthService
 ) {
 
-    fun processCheckin(data: ClientCheckinDTO, tokenHeader: String?): RegisteredClientResponseDTO {
-        // 1. Resolver o Token (Pode vir no Header ou no Body)
-        val tokenRaw = tokenHeader?.replace("Bearer ", "") ?: data.token?.replace("Bearer ", "")
-        ?: throw IllegalArgumentException("Token não fornecido.")
+    fun processCheckin(data: ClientCheckinDTO, tokenHeader: String): RegisteredClientResponseDTO {
+        // 1. Resolver Token
+        val tokenRaw = tokenHeader.replace("Bearer ", "").trim()
+        if (tokenRaw.isBlank()) throw IllegalArgumentException("Token inválido.")
 
         val userId = authService.validateToken(tokenRaw)
-        if (userId.isBlank()) {
-            throw IllegalArgumentException("Token inválido ou expirado.")
-        }
+        if (userId.isBlank()) throw IllegalArgumentException("Token expirado.")
 
-        // Validar o Hub
-        // O Python manda "hub_id", mas no seu sistema isso é o "hubCode" ou o "ID"?
-        // Assumindo que o Python manda o hubCode (ex: FATEC-ZL) para ser mais fácil de configurar lá.
-        val organization = organizationRepository.findByHubCode(data.hub_id)
-            ?: organizationRepository.findById(data.hub_id) // Tenta pelo ID se não achar pelo Code
-            ?: throw IllegalArgumentException("Hub não encontrado: ${data.hub_id}")
+        // 2. Validar Hub (Usando hubCode conforme solicitado)
+        val organization = organizationRepository.findByHubCode(data.hubCode)
+            ?: throw IllegalArgumentException("Hub não encontrado com o código: ${data.hubCode}")
 
-        // validar Permissão (Quem está fazendo checkin é VALIDATOR desse Hub?)
+        // 3. Validar Permissão
         val member = memberRepository.findByUserIdAndOrganizationId(userId, organization.id)
         if (member == null || (member.role != Role.VALIDATOR && member.role != Role.ADMIN)) {
-            throw IllegalAccessException("Este token não pertence a um Validador deste Hub.")
+            throw IllegalAccessException("Sem permissão de Validador.")
         }
 
-        // Parse do IP e Porta (O Python manda "127.0.0.1:3000")
-        val (ip, port) = if (data.server.contains(":")) {
-            data.server.split(":")
-        } else {
-            listOf(data.server, "80") // Porta padrão se não vier
-        }
+        // 4. Limpeza do Endereço
+        var cleanAddress = data.server.trim()
+        if (cleanAddress.endsWith("/")) cleanAddress = cleanAddress.dropLast(1)
 
-        // Salvar ou Atualizar (Upsert do Cliente)
-        // Verifica se já existe um cliente com esse IP nesse Hub
-        val existingClient = registeredClientRepository.findByAddress(organization.id, ip, port)
+        cleanAddress = cleanAddress
+            .replace("http://", "")
+            .replace("https://", "")
+
+        // 5. LÓGICA DE UPSERT VIA MACHINE ID
+        // Verifica se essa máquina já existe no sistema
+        val existingClient = registeredClientRepository.findByMachineId(data.machineId)
 
         val clientToSave = if (existingClient != null) {
+            // Se existe, ATUALIZA o IP (caso tenha mudado) e o status
             existingClient.copy(
+                organizationId = organization.id, // Pode ter mudado de hub? Se sim, atualiza.
+                ipAddress = cleanAddress,         // Atualiza o IP novo
                 lastCheckin = Instant.now(),
                 status = ClientStatus.ONLINE,
                 updatedAt = Instant.now()
             )
         } else {
+            // Se não existe, CRIA um novo registro
             RegisteredClient(
-                id = "", // Repo gera
                 organizationId = organization.id,
-                ipAddress = ip,
-                port = port,
-                name = "Totem Python (${member.id})",
+                machineId = data.machineId,       // Salva o ID físico
+                ipAddress = cleanAddress,
+                name = "Totem Python (${organization.hubCode})",
                 lastCheckin = Instant.now(),
                 status = ClientStatus.ONLINE
             )
@@ -76,8 +75,8 @@ class RegisteredClientService(
         return RegisteredClientResponseDTO(
             id = savedClient.id,
             hubCode = organization.hubCode,
+            machineId = savedClient.machineId,
             ipAddress = savedClient.ipAddress,
-            port = savedClient.port,
             status = savedClient.status.name
         )
     }

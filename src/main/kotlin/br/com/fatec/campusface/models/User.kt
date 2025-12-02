@@ -1,8 +1,6 @@
 package br.com.fatec.campusface.models
-
-import com.google.firebase.database.Exclude
+import com.google.cloud.firestore.annotation.Exclude
 import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import java.time.Instant
 
@@ -19,31 +17,25 @@ data class User(
 ): UserDetails {
     @Exclude
     override fun getAuthorities(): Collection<GrantedAuthority> {
-
-//        // Admin tem acesso a tudo
-//        when (role) {
-//            Role.ADMIN -> {
-//                authorities.add(SimpleGrantedAuthority("ROLE_ADMIN"))
-//                authorities.add(SimpleGrantedAuthority("ROLE_VALIDATOR"))
-//                authorities.add(SimpleGrantedAuthority("ROLE_MEMBER"))
-//            }
-//            // Validator tem acesso a Validator e Member
-//            Role.VALIDATOR -> {
-//                authorities.add(SimpleGrantedAuthority("ROLE_VALIDATOR"))
-//                authorities.add(SimpleGrantedAuthority("ROLE_MEMBER"))
-//            }
-//            // Member tem acesso apenas a Member
-//            else -> {
-//                authorities.add(SimpleGrantedAuthority("ROLE_MEMBER"))
-//            }
-//        }
         return emptyList()
     }
+
+    @Exclude
     override fun getPassword(): String = hashedPassword
+
+    @Exclude
     override fun getUsername(): String = email
+
+    @Exclude
     override fun isAccountNonExpired(): Boolean = true
+
+    @Exclude
     override fun isAccountNonLocked(): Boolean = true
+
+    @Exclude
     override fun isCredentialsNonExpired(): Boolean = true
+
+    @Exclude
     override fun isEnabled(): Boolean = true
 
 }

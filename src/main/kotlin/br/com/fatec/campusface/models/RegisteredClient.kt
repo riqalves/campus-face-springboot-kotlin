@@ -5,9 +5,9 @@ import java.time.Instant
 data class RegisteredClient(
     val id: String = "",
     val organizationId: String = "",
+    val machineId: String = "", // Novo campo
     val ipAddress: String = "",
-    val port: String = "",
-    val name: String = "", //Exemplo: Portaria Principal
+    val name: String = "",
 
     val lastCheckin: Instant = Instant.now(),
     val status: ClientStatus = ClientStatus.ONLINE,
