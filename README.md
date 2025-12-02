@@ -250,7 +250,7 @@ frontend/
 
 Assista ao vídeo de demonstração completo do **CampusFace** em funcionamento:
 
-**🔗 [Link do Vídeo de Demonstração](link video)**
+**🔗 [Link do vídeo](https://youtu.be/FthAte2-Or8)**
 
 > O vídeo apresenta todas as funcionalidades do sistema integrado: Backend (API REST), Edge Service (Reconhecimento Facial) e Frontend Multiplataforma (Android, iOS, Desktop e Web).
 
@@ -317,4 +317,5 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Acesso: `/swagger-ui.html`
 
 * As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
+
 
