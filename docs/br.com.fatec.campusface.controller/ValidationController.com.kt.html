@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ValidationController.com.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.controller</a> &gt; <span class="el_source">ValidationController.com.kt</span></div><h1>ValidationController.com.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.controller
+
+import br.com.fatec.campusface.dto.ApiResponse
+import br.com.fatec.campusface.dto.GenerateCodeRequest
+import br.com.fatec.campusface.dto.GeneratedCodeResponse
+import br.com.fatec.campusface.dto.ValidateCodeRequest
+import br.com.fatec.campusface.dto.ValidationResponseDTO
+import br.com.fatec.campusface.models.User
+import br.com.fatec.campusface.service.AuthCodeService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
+import org.springframework.web.bind.annotation.*
+
+<span class="fc" id="L17">@RestController</span>
+@RequestMapping(&quot;/validate&quot;)
+@SecurityRequirement(name = &quot;bearerAuth&quot;)
+<span class="fc" id="L20">class ValidationController(</span>
+<span class="fc" id="L21">    private val authCodeService: AuthCodeService</span>
+) {
+
+    @PostMapping(&quot;/qr-code/generate&quot;)
+    @Operation(summary = &quot;Gera um QR Code para entrada&quot;, description = &quot;O usuário deve especificar para qual organização quer entrar.&quot;)
+    fun generateQrCode(
+        @RequestBody request: GenerateCodeRequest,
+        authentication: Authentication
+    ): ResponseEntity&lt;ApiResponse&lt;GeneratedCodeResponse&gt;&gt; {
+<span class="fc" id="L30">        val user = authentication.principal as User</span>
+<span class="fc" id="L31">        return try {</span>
+<span class="fc" id="L32">            val response = authCodeService.generateCode(user.id, request.organizationId)</span>
+
+<span class="fc" id="L34">            ResponseEntity.ok(ApiResponse(success = true, message = &quot;Código gerado com sucesso.&quot;, data = response))</span>
+<span class="fc" id="L35">        } catch (e: Exception) {</span>
+<span class="fc" id="L36">            ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="fc" id="L37">                .body(ApiResponse(success = false, message = e.message, data = null))</span>
+        }
+    }
+
+    @PostMapping(&quot;/qr-code&quot;)
+    @Operation(summary = &quot;Valida um QR Code (Uso do Fiscal)&quot;, description = &quot;Retorna os dados do membro se o código for válido e o fiscal tiver permissão.&quot;)
+    fun validateQrCode(
+        @RequestBody request: ValidateCodeRequest,
+        authentication: Authentication
+    ): ResponseEntity&lt;ApiResponse&lt;ValidationResponseDTO&gt;&gt; {
+<span class="fc" id="L47">        val validator = authentication.principal as User</span>
+<span class="fc" id="L48">        return try {</span>
+            // Passamos o ID do fiscal para validar se ele pode fiscalizar aquela org
+<span class="fc" id="L50">            val validationResult = authCodeService.validateCode(request.code, validator.id)</span>
+
+<span class="fc bfc" id="L52" title="All 2 branches covered.">            if (validationResult.valid) {</span>
+<span class="fc" id="L53">                ResponseEntity.ok(ApiResponse(success = true, message = validationResult.message, data = validationResult))</span>
+            } else {
+<span class="fc" id="L55">                ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)</span>
+<span class="fc" id="L56">                    .body(ApiResponse(success = false, message = validationResult.message, data = validationResult))</span>
+            }
+<span class="fc" id="L58">        } catch (e: IllegalAccessException) {</span>
+<span class="fc" id="L59">            ResponseEntity.status(HttpStatus.FORBIDDEN)</span>
+<span class="fc" id="L60">                .body(ApiResponse(success = false, message = e.message, data = null))</span>
+<span class="fc" id="L61">        } catch (e: Exception) {</span>
+<span class="fc" id="L62">            ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="fc" id="L63">                .body(ApiResponse(success = false, message = e.message, data = null))</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

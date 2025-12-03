@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RegisteredClientRepository.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.repository</a> &gt; <span class="el_source">RegisteredClientRepository.kt</span></div><h1>RegisteredClientRepository.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.repository
+
+import br.com.fatec.campusface.models.ClientStatus
+import br.com.fatec.campusface.models.RegisteredClient
+import com.google.cloud.firestore.Firestore
+import org.springframework.stereotype.Repository
+
+<span class="fc" id="L8">@Repository</span>
+<span class="fc" id="L9">class RegisteredClientRepository(private val firestore: Firestore) {</span>
+<span class="fc" id="L10">    private val collection = firestore.collection(&quot;registeredClients&quot;)</span>
+
+    fun save(client: RegisteredClient): RegisteredClient {
+<span class="nc bnc" id="L13" title="All 4 branches missed.">        val docRef = if(client.id.isNotEmpty()) collection.document(client.id) else collection.document()</span>
+<span class="nc" id="L14">        val clientWithId = client.copy(id = docRef.id)</span>
+<span class="nc" id="L15">        docRef.set(clientWithId).get()</span>
+<span class="nc" id="L16">        return clientWithId</span>
+    }
+
+    fun findById(id: String): RegisteredClient? {
+<span class="nc" id="L20">        val doc = collection.document(id).get().get()</span>
+<span class="nc bnc" id="L21" title="All 2 branches missed.">        return if (doc.exists()) doc.toObject(RegisteredClient::class.java) else null</span>
+    }
+
+    fun findByOrganizaitonIdAndStatus(organizationId: String, status: ClientStatus): List&lt;RegisteredClient&gt; {
+<span class="nc" id="L25">        val snapshot = collection</span>
+<span class="nc" id="L26">            .whereEqualTo(&quot;organizationId&quot;, organizationId)</span>
+<span class="nc" id="L27">            .whereEqualTo(&quot;status&quot;, status.name)</span>
+<span class="nc" id="L28">            .get().get()</span>
+<span class="nc" id="L29">        return snapshot.documents.mapNotNull{it.toObject(RegisteredClient::class.java)}</span>
+    }
+
+    // Removido o parâmetro 'port'
+    fun findByAddress(organizationId: String, ipAddress: String): RegisteredClient? {
+<span class="nc" id="L34">        val snapshot = collection</span>
+<span class="nc" id="L35">            .whereEqualTo(&quot;organizationId&quot;, organizationId)</span>
+<span class="nc" id="L36">            .whereEqualTo(&quot;ipAddress&quot;, ipAddress)</span>
+<span class="nc" id="L37">            .limit(1).get().get()</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        return snapshot.documents.firstOrNull()?.toObject(RegisteredClient::class.java)</span>
+    }
+
+    // NOVO MÉTODO: Busca pela Identidade da Máquina
+    fun findByMachineId(machineId: String): RegisteredClient? {
+<span class="nc" id="L43">        val snapshot = collection</span>
+<span class="nc" id="L44">            .whereEqualTo(&quot;machineId&quot;, machineId)</span>
+<span class="nc" id="L45">            .limit(1)</span>
+<span class="nc" id="L46">            .get().get()</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        return snapshot.documents.firstOrNull()?.toObject(RegisteredClient::class.java)</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

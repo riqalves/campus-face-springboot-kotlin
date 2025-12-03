@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthCodeRepository.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.repository</a> &gt; <span class="el_source">AuthCodeRepository.kt</span></div><h1>AuthCodeRepository.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.repository
+
+import br.com.fatec.campusface.models.AuthCode
+import com.google.cloud.firestore.Firestore
+import org.springframework.stereotype.Repository
+
+<span class="fc" id="L7">@Repository</span>
+<span class="fc" id="L8">class AuthCodeRepository(private val firestore: Firestore) {</span>
+<span class="fc" id="L9">    private val collection = firestore.collection(&quot;authCodes&quot;)</span>
+
+    fun save(authCode: AuthCode): AuthCode {
+<span class="nc" id="L12">        val docRef = collection.document()</span>
+<span class="nc" id="L13">        val codeWithId = authCode.copy(id = docRef.id)</span>
+<span class="nc" id="L14">        docRef.set(codeWithId).get()</span>
+<span class="nc" id="L15">        return codeWithId</span>
+    }
+
+    fun findValidByCode(code: String): AuthCode? {
+<span class="nc" id="L19">        return collection</span>
+<span class="nc" id="L20">            .whereEqualTo(&quot;code&quot;, code)</span>
+<span class="nc" id="L21">            .whereEqualTo(&quot;valid&quot;, true)</span>
+<span class="nc" id="L22">            .limit(1)</span>
+<span class="nc" id="L23">            .get().get()</span>
+<span class="nc" id="L24">            .toObjects(AuthCode::class.java).firstOrNull()</span>
+    }
+
+    fun invalidateCode(id: String) {
+<span class="nc" id="L28">        collection.document(id).update(&quot;valid&quot;, false).get()</span>
+<span class="nc" id="L29">    }</span>
+
+    /**
+     * Invalida códigos anteriores DESTA organização para este usuário.
+     * Isso impede que ele gere 50 códigos válidos ao mesmo tempo para o mesmo lugar.
+     */
+    fun invalidatePreviousCodes(userId: String, organizationId: String) {
+<span class="nc" id="L36">        val batch = firestore.batch()</span>
+
+<span class="nc" id="L38">        val query = collection</span>
+<span class="nc" id="L39">            .whereEqualTo(&quot;userId&quot;, userId)</span>
+<span class="nc" id="L40">            .whereEqualTo(&quot;organizationId&quot;, organizationId)</span>
+<span class="nc" id="L41">            .whereEqualTo(&quot;valid&quot;, true)</span>
+<span class="nc" id="L42">            .get().get()</span>
+
+<span class="nc" id="L44">        query.documents.forEach { doc -&gt;</span>
+<span class="nc" id="L45">            batch.update(doc.reference, &quot;valid&quot;, false)</span>
+<span class="nc" id="L46">        }</span>
+
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (!query.isEmpty) {</span>
+<span class="nc" id="L49">            batch.commit().get()</span>
+        }
+<span class="nc" id="L51">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

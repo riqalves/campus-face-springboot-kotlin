@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChangeRequestRepository.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.repository</a> &gt; <span class="el_source">ChangeRequestRepository.kt</span></div><h1>ChangeRequestRepository.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.repository
+
+import br.com.fatec.campusface.models.ChangeRequest
+import br.com.fatec.campusface.models.RequestStatus
+import com.google.cloud.firestore.Firestore
+import org.springframework.stereotype.Repository
+
+<span class="fc" id="L8">@Repository</span>
+<span class="fc" id="L9">class ChangeRequestRepository(private val firestore: Firestore) {</span>
+<span class="fc" id="L10">    private val collection = firestore.collection(&quot;changeRequests&quot;)</span>
+
+    fun save(request: ChangeRequest): ChangeRequest {
+<span class="nc" id="L13">        println(&quot;DEBUG [Repo] - Salvando ChangeRequest. ID recebido: '${request.id}'&quot;)</span>
+
+<span class="nc bnc" id="L15" title="All 4 branches missed.">        val docRef = if (request.id.isNotEmpty()) {</span>
+<span class="nc" id="L16">            println(&quot;DEBUG [Repo] - ID existente detectado. Atualizando documento: ${request.id}&quot;)</span>
+<span class="nc" id="L17">            collection.document(request.id)</span>
+        } else {
+<span class="nc" id="L19">            println(&quot;DEBUG [Repo] - ID vazio. Gerando NOVO documento.&quot;)</span>
+<span class="nc" id="L20">            collection.document()</span>
+        }
+
+<span class="nc" id="L23">        val requestWithId = request.copy(id = docRef.id)</span>
+
+<span class="nc" id="L25">        docRef.set(requestWithId).get()</span>
+
+<span class="nc" id="L27">        println(&quot;DEBUG [Repo] - Salvo com sucesso no Firestore. ID Final: ${docRef.id} - Status: ${requestWithId.status}&quot;)</span>
+<span class="nc" id="L28">        return requestWithId</span>
+    }
+
+    fun findById(id: String): ChangeRequest? {
+<span class="nc" id="L32">        val doc = collection.document(id).get().get()</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        return if (doc.exists()) doc.toObject(ChangeRequest::class.java) else null</span>
+    }
+
+    fun findPendingByOrganizationId(orgId: String): List&lt;ChangeRequest&gt; {
+<span class="nc" id="L37">        println(&quot;DEBUG [Repo] - Buscando pendentes para Org: $orgId&quot;)</span>
+<span class="nc" id="L38">        val results = collection</span>
+<span class="nc" id="L39">            .whereEqualTo(&quot;organizationId&quot;, orgId)</span>
+<span class="nc" id="L40">            .whereEqualTo(&quot;status&quot;, RequestStatus.PENDING.name)</span>
+<span class="nc" id="L41">            .get().get()</span>
+<span class="nc" id="L42">            .toObjects(ChangeRequest::class.java)</span>
+
+<span class="nc" id="L44">        println(&quot;DEBUG [Repo] - Encontrados ${results.size} pedidos pendentes.&quot;)</span>
+<span class="nc" id="L45">        return results</span>
+    }
+
+    fun delete(id: String) {
+<span class="nc" id="L49">        collection.document(id).delete().get()</span>
+<span class="nc" id="L50">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

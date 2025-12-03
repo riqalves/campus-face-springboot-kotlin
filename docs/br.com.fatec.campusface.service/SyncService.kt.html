@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SyncService.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.service</a> &gt; <span class="el_source">SyncService.kt</span></div><h1>SyncService.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.service
+
+import br.com.fatec.campusface.models.ClientStatus
+import br.com.fatec.campusface.models.RegisteredClient
+import br.com.fatec.campusface.repository.RegisteredClientRepository
+import br.com.fatec.campusface.repository.UserRepository
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.springframework.scheduling.annotation.Async
+import org.springframework.stereotype.Service
+import java.io.IOException
+
+<span class="fc" id="L16">@Service</span>
+<span class="fc" id="L17">class SyncService(</span>
+<span class="fc" id="L18">    private val registeredClientRepository: RegisteredClientRepository,</span>
+<span class="fc" id="L19">    private val userRepository: UserRepository,</span>
+<span class="fc" id="L20">    private val cloudinaryService: CloudinaryService,</span>
+<span class="fc" id="L21">    private val httpClient: OkHttpClient</span>
+) {
+
+    // --- UPSERT (CRIAR/ATUALIZAR) ---
+    @Async
+    fun syncNewMember(organizationId: String, userId: String) {
+<span class="nc" id="L27">        val activeClients = registeredClientRepository.findByOrganizaitonIdAndStatus(organizationId, ClientStatus.ONLINE)</span>
+
+<span class="nc bnc" id="L29" title="All 2 branches missed.">        if (activeClients.isEmpty()) {</span>
+<span class="nc" id="L30">            println(&quot;AVISO (Sync): Nenhum cliente Python online para o Hub $organizationId&quot;)</span>
+<span class="nc" id="L31">            return</span>
+        }
+
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        val user = userRepository.findById(userId) ?: return</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">        val faceId = user.faceImageId ?: return</span>
+
+<span class="nc" id="L37">        val imageBytes: ByteArray</span>
+<span class="nc" id="L38">        try {</span>
+<span class="nc" id="L39">            val signedUrl = cloudinaryService.generateSignedUrl(faceId)</span>
+<span class="nc" id="L40">            imageBytes = cloudinaryService.downloadImageFromUrl(signedUrl)</span>
+<span class="nc" id="L41">        } catch (e: Exception) {</span>
+<span class="nc" id="L42">            println(&quot;ERRO (Sync): Falha ao baixar imagem: ${e.message}&quot;)</span>
+<span class="nc" id="L43">            return</span>
+        }
+
+<span class="nc" id="L46">        val requestBody = MultipartBody.Builder()</span>
+<span class="nc" id="L47">            .setType(MultipartBody.FORM)</span>
+<span class="nc" id="L48">            .addFormDataPart(&quot;user_id&quot;, userId)</span>
+<span class="nc" id="L49">            .addFormDataPart(</span>
+<span class="nc" id="L50">                &quot;image&quot;,</span>
+<span class="nc" id="L51">                &quot;face.jpg&quot;,</span>
+<span class="nc" id="L52">                imageBytes.toRequestBody(&quot;image/jpeg&quot;.toMediaType())</span>
+            )
+<span class="nc" id="L54">            .build()</span>
+
+<span class="nc" id="L56">        activeClients.forEach { client -&gt;</span>
+<span class="nc" id="L57">            sendUpsertRequest(client, requestBody)</span>
+<span class="nc" id="L58">        }</span>
+<span class="nc" id="L59">    }</span>
+
+    private fun sendUpsertRequest(client: RegisteredClient, requestBody: MultipartBody) {
+<span class="nc" id="L62">        val url = &quot;http://${client.ipAddress}/upsert&quot;</span>
+<span class="nc" id="L63">        val request = Request.Builder()</span>
+<span class="nc" id="L64">            .url(url)</span>
+<span class="nc" id="L65">            .post(requestBody)</span>
+<span class="nc" id="L66">            .header(&quot;ngrok-skip-browser-warning&quot;, &quot;true&quot;)</span>
+<span class="nc" id="L67">            .build()</span>
+
+<span class="nc" id="L69">        try {</span>
+<span class="nc" id="L70">            println(&quot;DEBUG (Sync Upsert): Enviando para ${client.name} ($url)...&quot;)</span>
+<span class="nc" id="L71">            httpClient.newCall(request).execute().use { response -&gt;</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                if (response.isSuccessful) {</span>
+<span class="nc" id="L73">                    println(&quot;SUCESSO (Sync): Face sincronizada com ${client.name}.&quot;)</span>
+                } else {
+<span class="nc" id="L75">                    println(&quot;ERRO (Sync): Cliente ${client.name} rejeitou (Code: ${response.code}).&quot;)</span>
+                }
+<span class="nc" id="L77">            }</span>
+<span class="nc" id="L78">        } catch (e: IOException) {</span>
+<span class="nc" id="L79">            println(&quot;ERRO FATAL (Sync): Falha ao conectar com ${client.name}: ${e.message}&quot;)</span>
+<span class="nc" id="L80">            markClientAsUnreachable(client)</span>
+<span class="nc" id="L81">        } catch (e: Exception) {</span>
+<span class="nc" id="L82">            println(&quot;ERRO (Sync): Erro genérico: ${e.message}&quot;)</span>
+        }
+<span class="nc" id="L84">    }</span>
+
+    // --- DELETE (REMOVER) ---
+
+    @Async
+    fun syncMemberDeletion(organizationId: String, userId: String) {
+        // 1. Busca Clientes Online
+<span class="nc" id="L91">        val activeClients = registeredClientRepository.findByOrganizaitonIdAndStatus(organizationId, ClientStatus.ONLINE)</span>
+
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (activeClients.isEmpty()) {</span>
+<span class="nc" id="L94">            println(&quot;AVISO (Sync Delete): Nenhum cliente online para o Hub $organizationId. A remoção ficará pendente (TODO: Full Sync).&quot;)</span>
+<span class="nc" id="L95">            return</span>
+        }
+
+<span class="nc" id="L98">        println(&quot;DEBUG (Sync Delete): Iniciando remoção do usuário $userId em ${activeClients.size} totens.&quot;)</span>
+
+        // 2. Envia comando de delete para cada um
+<span class="nc" id="L101">        activeClients.forEach { client -&gt;</span>
+<span class="nc" id="L102">            sendDeleteRequest(client, userId)</span>
+<span class="nc" id="L103">        }</span>
+<span class="nc" id="L104">    }</span>
+
+    private fun sendDeleteRequest(client: RegisteredClient, userId: String) {
+        // Monta a URL: http://IP/delete/USER_ID
+<span class="nc" id="L108">        val url = &quot;http://${client.ipAddress}/delete/$userId&quot;</span>
+
+<span class="nc" id="L110">        val request = Request.Builder()</span>
+<span class="nc" id="L111">            .url(url)</span>
+<span class="nc" id="L112">            .delete() // Verbo HTTP DELETE</span>
+<span class="nc" id="L113">            .header(&quot;ngrok-skip-browser-warning&quot;, &quot;true&quot;)</span>
+<span class="nc" id="L114">            .build()</span>
+
+<span class="nc" id="L116">        try {</span>
+<span class="nc" id="L117">            println(&quot;DEBUG (Sync Delete): Removendo usuário $userId de ${client.name} ($url)...&quot;)</span>
+
+<span class="nc" id="L119">            httpClient.newCall(request).execute().use { response -&gt;</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                if (response.isSuccessful) {</span>
+<span class="nc" id="L121">                    println(&quot;SUCESSO (Sync Delete): Usuário removido do cliente ${client.name}.&quot;)</span>
+                } else {
+<span class="nc" id="L123">                    println(&quot;ERRO (Sync Delete): Cliente ${client.name} falhou ao remover (Code: ${response.code}).&quot;)</span>
+                }
+<span class="nc" id="L125">            }</span>
+<span class="nc" id="L126">        } catch (e: IOException) {</span>
+<span class="nc" id="L127">            println(&quot;ERRO FATAL (Sync Delete): Falha ao conectar com ${client.name}: ${e.message}&quot;)</span>
+<span class="nc" id="L128">            markClientAsUnreachable(client)</span>
+<span class="nc" id="L129">        } catch (e: Exception) {</span>
+<span class="nc" id="L130">            println(&quot;ERRO (Sync Delete): Erro genérico: ${e.message}&quot;)</span>
+        }
+<span class="nc" id="L132">    }</span>
+
+    private fun markClientAsUnreachable(client: RegisteredClient) {
+<span class="nc" id="L135">        val updatedClient = client.copy(status = ClientStatus.UNREACHABLE)</span>
+<span class="nc" id="L136">        registeredClientRepository.save(updatedClient)</span>
+<span class="nc" id="L137">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

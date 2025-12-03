@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntryRequestController.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.controller</a> &gt; <span class="el_source">EntryRequestController.kt</span></div><h1>EntryRequestController.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.controller
+
+import br.com.fatec.campusface.dto.ApiResponse
+import br.com.fatec.campusface.dto.EntryRequestCreateDTO
+import br.com.fatec.campusface.dto.EntryRequestResponseDTO
+import br.com.fatec.campusface.dto.UserDTO
+import br.com.fatec.campusface.models.User
+import org.springframework.security.access.prepost.PreAuthorize
+import br.com.fatec.campusface.service.EntryRequestService
+import br.com.fatec.campusface.service.UserService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
+import org.springframework.web.bind.annotation.*
+
+<span class="fc" id="L19">@RestController</span>
+@RequestMapping(&quot;/entry-requests&quot;)
+@SecurityRequirement(name = &quot;bearerAuth&quot;)
+<span class="fc" id="L22">class EntryRequestController(</span>
+<span class="fc" id="L23">    private val entryRequestService: EntryRequestService,</span>
+<span class="fc" id="L24">    private val userService: UserService</span>
+) {
+
+    @PostMapping(&quot;/create&quot;)
+    fun createRequest(
+        @Valid @RequestBody data: EntryRequestCreateDTO,
+        authentication: Authentication
+    ): ResponseEntity&lt;ApiResponse&lt;EntryRequestResponseDTO&gt;&gt; {
+<span class="nc" id="L32">        return try {</span>
+<span class="nc" id="L33">            println(&quot;DEBUG - EntryRequestController $data&quot;)</span>
+<span class="nc" id="L34">            val user = authentication.principal as User</span>
+<span class="nc" id="L35">            val request = entryRequestService.createRequest(user.id, data)</span>
+
+<span class="nc" id="L37">            ResponseEntity.status(HttpStatus.CREATED)</span>
+<span class="nc" id="L38">                .body(</span>
+<span class="nc" id="L39">                    ApiResponse(</span>
+<span class="nc" id="L40">                        success = true,</span>
+<span class="nc" id="L41">                        message = &quot;Solicitação enviada com sucesso. Aguarde a aprovação.&quot;,</span>
+<span class="nc" id="L42">                        data = request</span>
+                    )
+                )
+<span class="nc" id="L45">        } catch (e: IllegalArgumentException) {</span>
+<span class="nc" id="L46">            println(&quot;ERRO - Falha ao criar solicitação: ${e.message}&quot;)</span>
+<span class="nc" id="L47">            ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="nc" id="L48">                .body(</span>
+<span class="nc" id="L49">                    ApiResponse(</span>
+<span class="nc" id="L50">                        success = false,</span>
+<span class="nc" id="L51">                        message = &quot;Erro ao criar pedido: ${e.message}&quot;,</span>
+<span class="nc" id="L52">                        data = null</span>
+                    )
+                )
+<span class="nc" id="L55">        } catch (e: Exception) {</span>
+<span class="nc" id="L56">            e.printStackTrace()</span>
+<span class="nc" id="L57">            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(</span>
+<span class="nc" id="L58">                ApiResponse(success = false, message = &quot;Erro ao criar solicitação: ${e.message}&quot;, data = null)</span>
+            )
+        }
+    }
+
+
+    /**
+     * Lista todas as solicitações pendentes de um Hub específico.
+     * Acessível para Admins do Hub.
+     */
+    @GetMapping(&quot;/organization/{hubCode}&quot;)
+    @PreAuthorize(&quot;isAuthenticated()&quot;)
+    fun listPendingRequests(@PathVariable hubCode: String): ResponseEntity&lt;ApiResponse&lt;List&lt;EntryRequestResponseDTO&gt;&gt;&gt; {
+<span class="nc" id="L71">        return try {</span>
+            // TODO: Idealmente, verificar aqui ou no serviço se o usuário logado é ADMIN deste hubCode
+<span class="nc" id="L73">            val requests = entryRequestService.listPendingRequests(hubCode)</span>
+
+<span class="nc" id="L75">            ResponseEntity.ok(</span>
+<span class="nc" id="L76">                ApiResponse(</span>
+<span class="nc" id="L77">                    success = true,</span>
+<span class="nc" id="L78">                    message = &quot;Solicitações pendentes encontradas.&quot;,</span>
+<span class="nc" id="L79">                    data = requests</span>
+                )
+            )
+<span class="nc" id="L82">        } catch (e: Exception) {</span>
+<span class="nc" id="L83">            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(</span>
+<span class="nc" id="L84">                ApiResponse(success = false, message = e.message, data = null)</span>
+            )
+        }
+    }
+
+
+    @PostMapping(&quot;/{requestId}/approve&quot;)
+    fun approveRequest(@PathVariable requestId: String): ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; {
+<span class="nc" id="L92">        return try {</span>
+            // TODO: Veririficar se o usuario logado e admin da org dessa requisicao
+<span class="nc" id="L94">            entryRequestService.approveRequest(requestId)</span>
+
+<span class="nc" id="L96">            ResponseEntity.ok(</span>
+<span class="nc" id="L97">                ApiResponse(success = true, message = &quot;Solicitacao aprovada com sucesso&quot;, data = null)</span>
+            )
+<span class="nc" id="L99">        }catch (e:Exception){</span>
+<span class="nc" id="L100">            e.printStackTrace()</span>
+<span class="nc" id="L101">            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(</span>
+<span class="nc" id="L102">                ApiResponse(success = false, message = &quot;Erro ao aprovar: ${e.message}&quot;, data = null)</span>
+            )
+        }
+    }
+
+
+    @PostMapping(&quot;/{requestId}/reject&quot;)
+    @PreAuthorize(&quot;isAuthenticated()&quot;)
+    fun rejectRequest(@PathVariable requestId: String): ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; {
+<span class="nc" id="L111">        return try {</span>
+            //TODO: verificar se o usuario logado é admin da organizacao dessa request
+<span class="nc" id="L113">            entryRequestService.rejectRequest(requestId)</span>
+<span class="nc" id="L114">            ResponseEntity.ok(</span>
+<span class="nc" id="L115">                ApiResponse(success = true, message = &quot;Solicitacao rejeitada&quot;, data = null)</span>
+            )
+<span class="nc" id="L117">        }catch (e: Exception){</span>
+<span class="nc" id="L118">            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(</span>
+<span class="nc" id="L119">                ApiResponse(success = false, message =&quot;Erro ao rejeitar ${e.message}&quot;, data = null)</span>
+            )
+        }
+    }
+
+
+    @GetMapping(&quot;/whoami&quot;)
+    fun whoAmI(authentication: Authentication): ResponseEntity&lt;ApiResponse&lt;Any&gt;&gt; {
+<span class="nc" id="L127">        try {</span>
+
+<span class="nc" id="L129">            println(&quot;TESTE whoAmI $authentication&quot;)</span>
+
+<span class="nc" id="L131">            val userModel = authentication.principal as br.com.fatec.campusface.models.User</span>
+
+<span class="nc" id="L133">            val userResponseDto = UserDTO(</span>
+<span class="nc" id="L134">                id = userModel.id,</span>
+<span class="nc" id="L135">                fullName = userModel.fullName,</span>
+<span class="nc" id="L136">                email = userModel.email,</span>
+<span class="nc" id="L137">                document = userModel.document,</span>
+<span class="nc" id="L138">                faceImageId = userModel.faceImageId!!,</span>
+<span class="nc" id="L139">                createdAt = userModel.createdAt,</span>
+<span class="nc" id="L140">                updatedAt = userModel.updatedAt,</span>
+            )
+
+<span class="nc" id="L143">            val authInfo = mapOf(</span>
+<span class="nc" id="L144">                &quot;user&quot; to userResponseDto, // Retornando o DTO formatado</span>
+<span class="nc" id="L145">                &quot;authorities&quot; to authentication.authorities.map { it.authority },</span>
+<span class="nc" id="L146">                &quot;principalType&quot; to authentication.principal.javaClass.name</span>
+            )
+
+<span class="nc" id="L149">            return ResponseEntity.ok(</span>
+<span class="nc" id="L150">                ApiResponse(</span>
+<span class="nc" id="L151">                    success = true,</span>
+<span class="nc" id="L152">                    message = &quot;Dados do usuário autenticado.&quot;,</span>
+<span class="nc" id="L153">                    data = authInfo</span>
+                )
+            )
+<span class="nc" id="L156">        } catch (e: ClassCastException) {</span>
+<span class="nc" id="L157">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(</span>
+<span class="nc" id="L158">                ApiResponse(</span>
+<span class="nc" id="L159">                    success = false,</span>
+<span class="nc" id="L160">                    message = &quot;Erro de cast! O principal não é do tipo esperado. Tipo encontrado: ${authentication.principal.javaClass.name}. Erro: ${e.message}&quot;,</span>
+<span class="nc" id="L161">                    data = null</span>
+                )
+            )
+<span class="nc" id="L164">        } catch (e: Exception) {</span>
+<span class="nc" id="L165">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(</span>
+<span class="nc" id="L166">                ApiResponse(</span>
+<span class="nc" id="L167">                    success = false,</span>
+<span class="nc" id="L168">                    message = &quot;Erro ao recuperar dados de autenticação: ${e.message}&quot;,</span>
+<span class="nc" id="L169">                    data = null</span>
+                )
+            )
+        }
+    }
+
+    @GetMapping(&quot;/my-requests&quot;)
+    @Operation(summary = &quot;Lista minhas solicitações&quot;, description = &quot;Retorna o histórico de solicitações de entrada do usuário logado.&quot;)
+    fun listMyRequests(authentication: Authentication): ResponseEntity&lt;ApiResponse&lt;List&lt;EntryRequestResponseDTO&gt;&gt;&gt; {
+<span class="nc" id="L178">        val user = authentication.principal as User</span>
+
+<span class="nc" id="L180">        val requests = entryRequestService.listUserRequests(user.id)</span>
+
+<span class="nc" id="L182">        return ResponseEntity.ok(</span>
+<span class="nc" id="L183">            ApiResponse(</span>
+<span class="nc" id="L184">                success = true,</span>
+<span class="nc" id="L185">                message = &quot;Histórico de solicitações recuperado.&quot;,</span>
+<span class="nc" id="L186">                data = requests</span>
+            )
+        )
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

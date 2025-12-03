@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserController.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.controller</a> &gt; <span class="el_source">UserController.kt</span></div><h1>UserController.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.controller
+
+import br.com.fatec.campusface.dto.ApiResponse
+import br.com.fatec.campusface.dto.UserDTO
+import br.com.fatec.campusface.dto.UserUpdateDTO
+import br.com.fatec.campusface.models.User
+import br.com.fatec.campusface.service.UserService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
+
+<span class="fc" id="L24">@RestController</span>
+@RequestMapping(&quot;/users&quot;)
+@SecurityRequirement(name = &quot;bearerAuth&quot;)
+@Tag(name = &quot;User Controller&quot;, description = &quot;Endpoints para gerenciamento do perfil do usuário &quot;)
+<span class="fc" id="L28">class UserController(private val userService: UserService) {</span>
+
+    @GetMapping(&quot;/{id}&quot;)
+    @Operation(
+        summary = &quot;Busca dados do usuário&quot;,
+        description = &quot;Retorna os detalhes do perfil. O usuário só pode visualizar o seu próprio perfil.&quot;
+    )
+    @ApiResponses(value = [
+        SwaggerApiResponse(responseCode = &quot;200&quot;, description = &quot;Usuário encontrado&quot;),
+        SwaggerApiResponse(responseCode = &quot;403&quot;, description = &quot;Acesso negado (tentativa de ver dados de outro usuário)&quot;),
+        SwaggerApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;)
+    ])
+    fun getUser(
+        @Parameter(description = &quot;ID do usuário a ser buscado&quot;) @PathVariable id: String,
+        authentication: Authentication
+    ): ResponseEntity&lt;ApiResponse&lt;UserDTO&gt;&gt; {
+<span class="nc" id="L44">        val currentUser = authentication.principal as User</span>
+<span class="nc" id="L45">        println(&quot;DEBUG [getUser] $id, $currentUser&quot;)</span>
+
+        // Regra de Segurança: Apenas o próprio dono dos dados pode vê-los
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (currentUser.id != id) {</span>
+<span class="nc" id="L49">            return ResponseEntity.status(HttpStatus.FORBIDDEN)</span>
+<span class="nc" id="L50">                .body(ApiResponse(success = false, message = &quot;Acesso negado aos dados de outro usuário.&quot;, data = null))</span>
+        }
+
+<span class="nc" id="L53">        val userDto = userService.getUserById(id)</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        return if (userDto != null) {</span>
+<span class="nc" id="L55">            ResponseEntity.ok(ApiResponse(success = true, message = &quot;Usuário encontrado.&quot;, data = userDto))</span>
+<span class="nc" id="L56">        } else {</span>
+<span class="nc" id="L57">            ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L58">                .body(ApiResponse(success = false, message = &quot;Usuário não encontrado.&quot;, data = null))</span>
+        }
+    }
+
+    /**
+     * Endpoint para atualizar apenas a foto de perfil.
+     */
+    @PatchMapping(value = [&quot;/image&quot;], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @Operation(
+        summary = &quot;Atualiza a foto de perfil&quot;,
+        description = &quot;Permite que o usuário troque sua foto facial. Requer envio via Multipart Form-Data.&quot;
+    )
+    @ApiResponses(value = [
+        SwaggerApiResponse(responseCode = &quot;200&quot;, description = &quot;Foto atualizada com sucesso&quot;),
+        SwaggerApiResponse(responseCode = &quot;400&quot;, description = &quot;Erro no upload ou arquivo inválido&quot;),
+        SwaggerApiResponse(responseCode = &quot;403&quot;, description = &quot;Acesso negado&quot;)
+    ])
+    fun updateProfileImage(
+        @Parameter(description = &quot;Arquivo de imagem (JPG/PNG)&quot;, required = true) @RequestParam(&quot;image&quot;) image: MultipartFile,
+        authentication: Authentication
+    ): ResponseEntity&lt;ApiResponse&lt;UserDTO&gt;&gt; {
+<span class="nc" id="L79">        val currentUser = authentication.principal as User</span>
+<span class="nc" id="L80">        val id = currentUser.id</span>
+
+<span class="nc" id="L82">        return try {</span>
+<span class="nc" id="L83">            val updatedUser = userService.updateProfileImage(id, image)</span>
+
+            // TODO: Se esse usuário já for membro de organizações, disparar ChangeRequests ou Syncs.
+            // Por enquanto, apenas atualiza o perfil base.
+
+<span class="nc" id="L88">            ResponseEntity.ok(</span>
+<span class="nc" id="L89">                ApiResponse(success = true, message = &quot;Foto de perfil atualizada com sucesso!&quot;, data = updatedUser)</span>
+            )
+<span class="nc" id="L91">        } catch (e: Exception) {</span>
+<span class="nc" id="L92">            ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="nc" id="L93">                .body(ApiResponse(success = false, message = e.message, data = null))</span>
+        }
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    @Operation(
+        summary = &quot;Exclui a conta do usuário&quot;,
+        description = &quot;Ação irreversível. Remove o usuário, sua foto e seus dados do sistema.&quot;
+    )
+    @ApiResponses(value = [
+        SwaggerApiResponse(responseCode = &quot;200&quot;, description = &quot;Conta excluída com sucesso&quot;),
+        SwaggerApiResponse(responseCode = &quot;403&quot;, description = &quot;Acesso negado&quot;),
+        SwaggerApiResponse(responseCode = &quot;404&quot;, description = &quot;Usuário não encontrado&quot;)
+    ])
+    fun deleteUser(
+        @Parameter(description = &quot;ID do usuário a ser excluído&quot;) @PathVariable id: String,
+        authentication: Authentication
+    ): ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; {
+<span class="nc" id="L111">        val currentUser = authentication.principal as User</span>
+
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (currentUser.id != id) {</span>
+<span class="nc" id="L114">            return ResponseEntity.status(HttpStatus.FORBIDDEN)</span>
+<span class="nc" id="L115">                .body(ApiResponse(success = false, message = &quot;Você não pode excluir a conta de outro usuário.&quot;, data = null))</span>
+        }
+
+<span class="nc" id="L118">        val deleted = userService.deleteUser(id)</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        return if (deleted) {</span>
+<span class="nc" id="L120">            ResponseEntity.ok(ApiResponse(success = true, message = &quot;Conta excluída com sucesso.&quot;, data = null))</span>
+<span class="nc" id="L121">        } else {</span>
+<span class="nc" id="L122">            ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L123">                .body(ApiResponse(success = false, message = &quot;Usuário não encontrado.&quot;, data = null))</span>
+        }
+    }
+
+    @GetMapping(&quot;/allusers&quot;)
+    @Operation(
+        summary = &quot;Listar todos os usuários&quot;,
+        description = &quot;Retorna uma lista com todos os usuários cadastrados no sistema.&quot;
+    )
+    @ApiResponses(value = [
+        SwaggerApiResponse(responseCode = &quot;200&quot;, description = &quot;Lista recuperada com sucesso&quot;)
+    ])
+    fun getAllUsers(): ResponseEntity&lt;ApiResponse&lt;List&lt;UserDTO&gt;&gt;&gt; {
+<span class="nc" id="L136">        val users = userService.listUsers()</span>
+
+<span class="nc" id="L138">        return ResponseEntity.ok().body(ApiResponse(success = true, message = &quot;aqui esta os usuarios&quot;, data = users))</span>
+    }
+
+    @PutMapping()
+    @Operation(
+        summary = &quot;Atualiza dados cadastrais&quot;,
+        description = &quot;Atualiza nome, email, senha e documento. Campos opcionais.&quot;
+    )
+    @ApiResponses(value = [
+        SwaggerApiResponse(responseCode = &quot;200&quot;, description = &quot;Dados atualizados com sucesso&quot;),
+        SwaggerApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos ou email já em uso&quot;),
+        SwaggerApiResponse(responseCode = &quot;403&quot;, description = &quot;Acesso negado&quot;)
+    ])
+    fun updateUser(
+        @Valid @RequestBody data: UserUpdateDTO,
+        authentication: Authentication
+    ): ResponseEntity&lt;ApiResponse&lt;UserDTO&gt;&gt; {
+<span class="nc" id="L155">        println(&quot;DEBUG RECEBIDO: Nome=${data.fullName}, Email=${data.email}&quot;)</span>
+        //TODO corrigir adicao ao inves de update
+<span class="nc" id="L157">        val currentUser = authentication.principal as User</span>
+<span class="nc" id="L158">        println(&quot;DEBUG UPDATE $currentUser, $data&quot;)</span>
+        // só o próprio usuário pode se atualizar
+<span class="nc" id="L160">        val id = currentUser.id</span>
+
+<span class="nc" id="L162">        return try {</span>
+<span class="nc" id="L163">            val updatedUser = userService.updateUser(id, data)</span>
+
+<span class="nc" id="L165">            ResponseEntity.ok(</span>
+<span class="nc" id="L166">                ApiResponse(</span>
+<span class="nc" id="L167">                    success = true,</span>
+<span class="nc" id="L168">                    message = &quot;Dados atualizados com sucesso.&quot;,</span>
+<span class="nc" id="L169">                    data = updatedUser</span>
+                )
+            )
+<span class="nc" id="L172">        } catch (e: Exception) {</span>
+<span class="nc" id="L173">            ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="nc" id="L174">                .body(ApiResponse(success = false, message = e.message, data = null))</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

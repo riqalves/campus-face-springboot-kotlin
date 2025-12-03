@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SecurityFilter.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.configuration</a> &gt; <span class="el_source">SecurityFilter.kt</span></div><h1>SecurityFilter.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.configuration
+
+import br.com.fatec.campusface.repository.UserRepository
+import br.com.fatec.campusface.service.AuthService
+import jakarta.servlet.FilterChain
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.stereotype.Component
+import org.springframework.web.filter.OncePerRequestFilter
+
+@Component
+<span class="fc" id="L15">class SecurityFilter : OncePerRequestFilter() {</span>
+
+
+    @Autowired
+    private lateinit var userRepository: UserRepository
+
+    @Autowired
+<span class="nc" id="L22">    lateinit var authService: AuthService</span>
+
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        filterChain: FilterChain
+    ) {
+
+<span class="nc" id="L30">        val path = request.requestURI</span>
+
+        // Ignora rotas públicas
+<span class="nc bnc" id="L33" title="All 4 branches missed.">        if (path.startsWith(&quot;/auth/register&quot;) || path.startsWith(&quot;/auth/login&quot;)) {</span>
+<span class="nc" id="L34">            filterChain.doFilter(request, response)</span>
+<span class="nc" id="L35">            return</span>
+        }
+
+
+<span class="nc" id="L39">        val token = this.recoverToken(request)</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (token != null) {</span>
+<span class="nc" id="L41">            val id = authService.validateToken(token)</span>
+
+<span class="nc bnc" id="L43" title="All 4 branches missed.">            if (id.isNotBlank()) {</span>
+//                val user = userRepository.findUserDetailById(id)
+<span class="nc" id="L45">                val user = userRepository.findById(id)</span>
+<span class="nc" id="L46">                println(&quot;SECURITY FILTER: $user&quot;)</span>
+<span class="nc" id="L47">                val authentication = UsernamePasswordAuthenticationToken(</span>
+<span class="nc" id="L48">                    user,</span>
+<span class="nc" id="L49">                    null,</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">                    user?.authorities</span>
+                )
+<span class="nc" id="L52">                SecurityContextHolder.getContext().authentication = authentication</span>
+            }
+        }
+<span class="nc" id="L55">        filterChain.doFilter(request, response)</span>
+<span class="nc" id="L56">    }</span>
+
+    private fun recoverToken(request: HttpServletRequest): String? {
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        val authHeader = request.getHeader(&quot;Authorization&quot;) ?: return null</span>
+<span class="nc" id="L60">        return authHeader.replace(&quot;Bearer &quot;, &quot;&quot;)</span>
+
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

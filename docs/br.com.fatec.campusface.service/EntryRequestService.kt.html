@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntryRequestService.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.service</a> &gt; <span class="el_source">EntryRequestService.kt</span></div><h1>EntryRequestService.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.service
+
+import br.com.fatec.campusface.dto.EntryRequestCreateDTO
+import br.com.fatec.campusface.dto.EntryRequestResponseDTO
+import br.com.fatec.campusface.dto.UserDTO
+import br.com.fatec.campusface.models.EntryRequest
+import br.com.fatec.campusface.models.MemberStatus
+import br.com.fatec.campusface.models.OrganizationMember
+import br.com.fatec.campusface.models.RequestStatus
+import br.com.fatec.campusface.models.Role
+import br.com.fatec.campusface.models.User
+import br.com.fatec.campusface.repository.UserRepository
+import br.com.fatec.campusface.repository.EntryRequestRepository
+import br.com.fatec.campusface.repository.OrganizationMemberRepository
+import br.com.fatec.campusface.repository.OrganizationRepository
+import org.springframework.stereotype.Service
+import java.time.Instant
+
+<span class="fc" id="L19">@Service</span>
+<span class="fc" id="L20">class EntryRequestService(</span>
+<span class="fc" id="L21">    private val entryRequestRepository: EntryRequestRepository,</span>
+<span class="fc" id="L22">    private val organizationMemberRepository: OrganizationMemberRepository,</span>
+<span class="fc" id="L23">    private val organizationRepository: OrganizationRepository,</span>
+<span class="fc" id="L24">    private val userRepository: UserRepository,</span>
+<span class="fc" id="L25">    private val cloudinaryService: CloudinaryService,</span>
+<span class="fc" id="L26">    private val syncService: SyncService</span>
+) {
+
+    /**
+     * Cria um novo pedido de entrada para uma organização baseada no Código do Hub.
+     */
+    fun createRequest(userId: String, data: EntryRequestCreateDTO): EntryRequestResponseDTO {
+
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        val organization = organizationRepository.findByHubCode(data.hubCode)</span>
+<span class="nc" id="L35">            ?: throw IllegalArgumentException(&quot;Organização não encontrada com o código: ${data.hubCode}&quot;)</span>
+
+<span class="nc" id="L37">        val existingMember = organizationMemberRepository.findByUserIdAndOrganizationId(userId, organization.id)</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        if (existingMember != null) {</span>
+<span class="nc" id="L39">            throw IllegalStateException(&quot;Você já é um membro desta Organização.&quot;)</span>
+        }
+
+        // verifica se já existe um pedido PENDENTE
+<span class="nc" id="L43">        val pendingRequests = entryRequestRepository.findByOrganizationIdAndStatus(organization.id, RequestStatus.PENDING)</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (pendingRequests.any { it.userId == userId }) {</span>
+<span class="nc" id="L45">            throw IllegalStateException(&quot;Você já possui uma solicitação pendente para esta organização.&quot;)</span>
+        }
+
+<span class="nc" id="L48">        val newEntryRequest = EntryRequest(</span>
+<span class="nc" id="L49">            userId = userId,</span>
+<span class="nc" id="L50">            organizationId = organization.id,</span>
+<span class="nc" id="L51">            hubCode = organization.hubCode,</span>
+<span class="nc" id="L52">            role = data.role, // O usuário solicita o cargo (ex: MEMBER), mas o Admin pode mudar depois</span>
+<span class="nc" id="L53">            status = RequestStatus.PENDING,</span>
+<span class="nc" id="L54">            requestedAt = Instant.now()</span>
+        )
+
+<span class="nc" id="L57">        val savedRequest = entryRequestRepository.save(newEntryRequest)</span>
+
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        val user = userRepository.findById(userId) ?: throw IllegalStateException(&quot;Usuário não encontrado no banco de dados.&quot;)</span>
+<span class="nc" id="L60">        return toResponseDTO(savedRequest, user)</span>
+    }
+
+    /**
+     * Lista pedidos pendentes para um Hub.
+     * Usado pelo App do Admin para saber quem quer entrar.
+     */
+    fun listPendingRequests(hubCode: String): List&lt;EntryRequestResponseDTO&gt; {
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        val organization = organizationRepository.findByHubCode(hubCode)</span>
+<span class="nc" id="L69">            ?: throw IllegalArgumentException(&quot;Hub não encontrado&quot;)</span>
+
+<span class="nc" id="L71">        val requests = entryRequestRepository.findByOrganizationIdAndStatus(organization.id, RequestStatus.PENDING)</span>
+
+<span class="nc" id="L73">        return requests.mapNotNull { req -&gt;</span>
+<span class="nc" id="L74">            val user = userRepository.findById(req.userId)</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            user?.let { toResponseDTO(req, it) }</span>
+        }
+    }
+
+    /**
+     * Lista o histórico de solicitações do próprio usuário.
+     */
+    fun listUserRequests(userId: String): List&lt;EntryRequestResponseDTO&gt; {
+<span class="nc" id="L83">        val requests = entryRequestRepository.findByUserId(userId)</span>
+
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        val user = userRepository.findById(userId)</span>
+<span class="nc" id="L86">            ?: throw IllegalStateException(&quot;Usuário não encontrado&quot;)</span>
+
+<span class="nc" id="L88">        return requests.map { req -&gt;</span>
+<span class="nc" id="L89">            toResponseDTO(req, user)</span>
+        }
+    }
+
+    /**
+     * Aprova uma solicitação:
+     * 1. Muda status da request para APPROVED.
+     * 2. Cria o registro oficial em OrganizationMember.
+     * 3. Dispara sincronização para os totens.
+     */
+    fun approveRequest(requestId: String) {
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        val request = entryRequestRepository.findById(requestId)</span>
+<span class="nc" id="L101">            ?: throw IllegalArgumentException(&quot;Solicitação não encontrada&quot;)</span>
+
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (request.status != RequestStatus.PENDING) {</span>
+<span class="nc" id="L104">            throw IllegalStateException(&quot;Esta solicitação já foi processada.&quot;)</span>
+        }
+
+        // Cria o vinculo no OrganizationMember
+<span class="nc" id="L108">        val newMember = OrganizationMember(</span>
+<span class="nc" id="L109">            organizationId = request.organizationId,</span>
+<span class="nc" id="L110">            userId = request.userId,</span>
+<span class="nc" id="L111">            role = request.role,</span>
+<span class="nc" id="L112">            status = MemberStatus.ACTIVE,</span>
+<span class="nc" id="L113">            faceImageId = null // Usa a foto do perfil do usuário (User)</span>
+        )
+<span class="nc" id="L115">        organizationMemberRepository.save(newMember)</span>
+
+        // atualiza listas na Organization
+<span class="nc bnc" id="L118" title="All 4 branches missed.">        when (newMember.role) {</span>
+<span class="nc" id="L119">            Role.MEMBER -&gt; organizationRepository.addMemberToOrganization(newMember.organizationId, newMember.userId)</span>
+<span class="nc" id="L120">            Role.VALIDATOR -&gt; organizationRepository.addValidatorToOrganization(newMember.organizationId, newMember.userId)</span>
+<span class="nc" id="L121">            Role.ADMIN -&gt; organizationRepository.addAdminToOrganization(newMember.organizationId, newMember.userId)</span>
+        }
+
+<span class="nc" id="L124">        entryRequestRepository.updateStatus(request.id, RequestStatus.APPROVED)</span>
+
+        // Dispara o Upsert. O Python vai receber a foto e criar o registro no banco vetorial.
+<span class="nc" id="L127">        syncService.syncNewMember(newMember.organizationId, newMember.userId)</span>
+<span class="nc" id="L128">    }</span>
+
+    /**
+     * Rejeita uma solicitação.
+     */
+    fun rejectRequest(requestId: String) {
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        val request = entryRequestRepository.findById(requestId)</span>
+<span class="nc" id="L135">            ?: throw IllegalArgumentException(&quot;Solicitação não encontrada&quot;)</span>
+
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        if (request.status != RequestStatus.PENDING) {</span>
+<span class="nc" id="L138">            throw IllegalStateException(&quot;Solicitação não está pendente.&quot;)</span>
+        }
+
+<span class="nc" id="L141">        entryRequestRepository.updateStatus(requestId, RequestStatus.DENIED)</span>
+<span class="nc" id="L142">    }</span>
+
+    // --- Auxiliar ---
+
+    private fun toResponseDTO(entryRequest: EntryRequest, user: User): EntryRequestResponseDTO {
+        // Gera URL assinada para o admin ver a cara do sujeito antes de aprovar
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        val faceUrl = user.faceImageId?.let { cloudinaryService.generateSignedUrl(it) }</span>
+<span class="nc" id="L149">        val userDTO = UserDTO.fromEntity(user, faceUrl)</span>
+
+<span class="nc" id="L151">        return EntryRequestResponseDTO(</span>
+<span class="nc" id="L152">            id = entryRequest.id,</span>
+<span class="nc" id="L153">            hubCode = entryRequest.hubCode,</span>
+<span class="nc" id="L154">            role = entryRequest.role,</span>
+<span class="nc" id="L155">            status = entryRequest.status,</span>
+<span class="nc" id="L156">            requestedAt = entryRequest.requestedAt,</span>
+<span class="nc" id="L157">            user = userDTO,</span>
+        )
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrganizationMemberService.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.service</a> &gt; <span class="el_source">OrganizationMemberService.kt</span></div><h1>OrganizationMemberService.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.service
+
+import br.com.fatec.campusface.dto.OrganizationMemberDTO
+import br.com.fatec.campusface.dto.UserDTO
+import br.com.fatec.campusface.models.MemberStatus
+import br.com.fatec.campusface.models.OrganizationMember
+import br.com.fatec.campusface.models.Role
+import br.com.fatec.campusface.models.User
+import br.com.fatec.campusface.repository.OrganizationMemberRepository
+import br.com.fatec.campusface.repository.UserRepository
+import org.springframework.stereotype.Service
+
+<span class="fc" id="L13">@Service</span>
+<span class="fc" id="L14">class OrganizationMemberService(</span>
+<span class="fc" id="L15">    private val memberRepository: OrganizationMemberRepository,</span>
+<span class="fc" id="L16">    private val userRepository: UserRepository,</span>
+<span class="fc" id="L17">    private val cloudinaryService: CloudinaryService,</span>
+<span class="fc" id="L18">    private val syncService: SyncService</span>
+) {
+
+    /**
+     * Lista membros de uma organização, opcionalmente filtrando por Role.
+     */
+<span class="fc" id="L24">    fun getAllMembers(organizationId: String, role: Role? = null): List&lt;OrganizationMemberDTO&gt; {</span>
+<span class="pc bpc" id="L25" title="1 of 2 branches missed.">        val members = if (role != null) {</span>
+<span class="nc" id="L26">            memberRepository.findByOrganizationIdAndRole(organizationId, role)</span>
+        } else {
+<span class="fc" id="L28">            memberRepository.findAllByOrganizationId(organizationId)</span>
+        }
+
+        // busca todos os usuários de uma vez
+<span class="pc bpc" id="L32" title="1 of 2 branches missed.">        if (members.isEmpty()) return emptyList()</span>
+
+<span class="fc" id="L34">        val userIds = members.map { it.userId }.distinct()</span>
+<span class="fc" id="L35">        val usersMap = userRepository.findAllByIds(userIds).associateBy { it.id }</span>
+
+<span class="fc" id="L37">        return members.mapNotNull { member -&gt;</span>
+<span class="fc" id="L38">            val user = usersMap[member.userId]</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">            user?.let { toMemberDTO(member, it) }</span>
+        }
+    }
+
+    /**
+     * Busca um membro específico pelo ID do vínculo (organizationMemberId).
+     */
+    fun getMemberById(id: String): OrganizationMemberDTO? {
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        val member = memberRepository.findById(id) ?: return null</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">        val user = userRepository.findById(member.userId) ?: return null</span>
+<span class="fc" id="L49">        return toMemberDTO(member, user)</span>
+    }
+
+    /**
+     * Atualiza o papel (Role) de um membro (ex: MEMBER -&gt; VALIDATOR).
+     */
+    fun updateMemberRole(id: String, newRole: Role): OrganizationMemberDTO {
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        val member = memberRepository.findById(id)</span>
+<span class="fc" id="L57">            ?: throw IllegalArgumentException(&quot;Membro não encontrado&quot;)</span>
+
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        if (member.role == newRole) return getMemberById(id)!!</span>
+
+<span class="fc" id="L61">        memberRepository.updateRole(id, newRole)</span>
+
+        // TODO: Chamar SyncService para atualizar permissões nos totens se necessário
+        // ex: syncService.notifyMemberUpdate(member.organizationId, member.userId)
+<span class="fc" id="L65">        println(&quot;TODO: SyncService - Role do membro ${member.id} atualizada para $newRole&quot;)</span>
+
+<span class="fc" id="L67">        return getMemberById(id)!!</span>
+    }
+
+    /**
+     * Atualiza o Status de um membro (ex: ACTIVE -&gt; INACTIVE).
+     * Se inativar, o totem deve bloquear o acesso imediatamente.
+     */
+    fun updateMemberStatus(id: String, newStatus: MemberStatus): OrganizationMemberDTO {
+<span class="fc bfc" id="L75" title="All 2 branches covered.">        val member = memberRepository.findById(id)</span>
+<span class="fc" id="L76">            ?: throw IllegalArgumentException(&quot;Membro não encontrado&quot;)</span>
+
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        if (member.status == newStatus) return getMemberById(id)!!</span>
+
+<span class="fc" id="L80">        memberRepository.updateStatus(id, newStatus)</span>
+
+        // TODO: Chamar SyncService. Se status != ACTIVE, o Python deve remover a face da memória.
+<span class="fc" id="L83">        println(&quot;TODO: SyncService - Status do membro ${member.id} atualizado para $newStatus&quot;)</span>
+
+<span class="fc" id="L85">        return getMemberById(id)!!</span>
+    }
+
+    /**
+     * Remove um membro da organização.
+     * Isso deve remover a face dos totens Python imediatamente.
+     */
+    fun removeMember(id: String) {
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        val member = memberRepository.findById(id)</span>
+<span class="nc" id="L94">            ?: throw IllegalArgumentException(&quot;Membro não encontrado&quot;)</span>
+
+        // Salva os IDs antes de deletar para poder notificar
+<span class="fc" id="L97">        val orgId = member.organizationId</span>
+<span class="fc" id="L98">        val userId = member.userId</span>
+
+<span class="fc" id="L100">        memberRepository.delete(id)</span>
+
+        // GATILHO DE SYNC (DELETE)
+<span class="fc" id="L103">        syncService.syncMemberDeletion(orgId, userId)</span>
+
+<span class="fc" id="L105">        println(&quot;INFO: Membro removido e disparo de sync enviado.&quot;)</span>
+<span class="fc" id="L106">    }</span>
+
+    // --- Métodos Auxiliares ---
+
+    /**
+     * Converte Entity -&gt; DTO.
+     * Gera a URL assinada temporária para a foto do usuário.
+     * Prioriza a foto do Member (se houver), senão usa a do User.
+     */
+    private fun toMemberDTO(member: OrganizationMember, user: User): OrganizationMemberDTO {
+        // Lógica de Foto: O membro pode ter uma foto específica para aquela org?
+        // Por enquanto assumimos que usamos o faceImageId do User, mas se o member tiver override, usamos ele.
+<span class="pc bpc" id="L118" title="3 of 6 branches missed.">        val faceId = member.faceImageId?.ifBlank { null } ?: user.faceImageId</span>
+
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">        val signedUrl = faceId?.let { cloudinaryService.generateSignedUrl(it) }</span>
+
+        // Cria o UserDTO
+<span class="fc" id="L123">        val userDTO = UserDTO.fromEntity(user, signedUrl)</span>
+
+<span class="fc" id="L125">        return OrganizationMemberDTO(</span>
+<span class="fc" id="L126">            id = member.id,</span>
+<span class="fc" id="L127">            role = member.role,</span>
+<span class="fc" id="L128">            status = member.status,</span>
+<span class="fc" id="L129">            joinedAt = member.createdAt,</span>
+<span class="fc" id="L130">            user = userDTO</span>
+        )
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

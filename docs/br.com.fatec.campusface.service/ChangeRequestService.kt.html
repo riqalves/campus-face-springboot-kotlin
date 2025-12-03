@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChangeRequestService.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.service</a> &gt; <span class="el_source">ChangeRequestService.kt</span></div><h1>ChangeRequestService.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.service
+
+import br.com.fatec.campusface.dto.ChangeRequestResponseDTO
+import br.com.fatec.campusface.models.ChangeRequest
+import br.com.fatec.campusface.models.RequestStatus
+import br.com.fatec.campusface.models.Role
+import br.com.fatec.campusface.repository.ChangeRequestRepository
+import br.com.fatec.campusface.repository.OrganizationMemberRepository
+import br.com.fatec.campusface.repository.UserRepository
+import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
+import java.time.Instant
+
+<span class="fc" id="L14">@Service</span>
+<span class="fc" id="L15">class ChangeRequestService(</span>
+<span class="fc" id="L16">    private val changeRequestRepository: ChangeRequestRepository,</span>
+<span class="fc" id="L17">    private val memberRepository: OrganizationMemberRepository,</span>
+<span class="fc" id="L18">    private val userRepository: UserRepository,</span>
+<span class="fc" id="L19">    private val cloudinaryService: CloudinaryService,</span>
+<span class="fc" id="L20">    private val imageProcessingService: ImageProcessingService,</span>
+<span class="fc" id="L21">    private val syncService: SyncService</span>
+) {
+
+    fun createRequest(userId: String, organizationId: String, image: MultipartFile): ChangeRequest {
+<span class="nc" id="L25">        println(&quot;DEBUG [Service] - createRequest iniciado para User: $userId na Org: $organizationId&quot;)</span>
+
+<span class="nc bnc" id="L27" title="All 2 branches missed.">        val member = memberRepository.findByUserIdAndOrganizationId(userId, organizationId)</span>
+<span class="nc" id="L28">            ?: throw IllegalArgumentException(&quot;Você não é membro desta organização.&quot;)</span>
+
+<span class="nc" id="L30">        val pending = changeRequestRepository.findPendingByOrganizationId(organizationId)</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        if (pending.any { it.userId == userId }) {</span>
+<span class="nc" id="L32">            println(&quot;DEBUG [Service] - Erro: Usuário já tem pendência.&quot;)</span>
+<span class="nc" id="L33">            throw IllegalStateException(&quot;Você já possui uma solicitação de troca pendente.&quot;)</span>
+        }
+
+<span class="nc" id="L36">        println(&quot;DEBUG [Service] - Processando imagem...&quot;)</span>
+<span class="nc" id="L37">        val processedBytes = imageProcessingService.processImageForApi(image)</span>
+<span class="nc" id="L38">        val uploadResult = cloudinaryService.upload(processedBytes)</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        val publicId = uploadResult[&quot;public_id&quot;]</span>
+<span class="nc" id="L40">            ?: throw IllegalStateException(&quot;Erro ao fazer upload da imagem.&quot;)</span>
+
+<span class="nc" id="L42">        println(&quot;DEBUG [Service] - Imagem enviada ao Cloudinary. PublicID: $publicId&quot;)</span>
+
+<span class="nc" id="L44">        val request = ChangeRequest(</span>
+<span class="nc" id="L45">            userId = userId,</span>
+<span class="nc" id="L46">            organizationId = organizationId,</span>
+<span class="nc" id="L47">            newFaceImageId = publicId,</span>
+<span class="nc" id="L48">            status = RequestStatus.PENDING,</span>
+<span class="nc" id="L49">            requestedAt = Instant.now()</span>
+        )
+
+<span class="nc" id="L52">        return changeRequestRepository.save(request)</span>
+    }
+
+    fun listPendingRequests(organizationId: String): List&lt;ChangeRequestResponseDTO&gt; {
+<span class="nc" id="L56">        val requests = changeRequestRepository.findPendingByOrganizationId(organizationId)</span>
+
+<span class="nc" id="L58">        return requests.mapNotNull { req -&gt;</span>
+<span class="nc" id="L59">            val user = userRepository.findById(req.userId)</span>
+<span class="nc" id="L60">            val member = memberRepository.findByUserIdAndOrganizationId(req.userId, organizationId)</span>
+
+<span class="nc bnc" id="L62" title="All 4 branches missed.">            if (user != null &amp;&amp; member != null) {</span>
+<span class="nc bnc" id="L63" title="All 6 branches missed.">                val currentFaceId = member.faceImageId?.ifBlank { null } ?: user.faceImageId</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">                val currentUrl = currentFaceId?.let { cloudinaryService.generateSignedUrl(it) }</span>
+<span class="nc" id="L65">                val newUrl = cloudinaryService.generateSignedUrl(req.newFaceImageId)</span>
+
+<span class="nc" id="L67">                ChangeRequestResponseDTO(</span>
+<span class="nc" id="L68">                    id = req.id,</span>
+<span class="nc" id="L69">                    status = req.status,</span>
+<span class="nc" id="L70">                    requestedAt = req.requestedAt,</span>
+<span class="nc" id="L71">                    organizationId = req.organizationId,</span>
+<span class="nc" id="L72">                    userFullName = user.fullName,</span>
+<span class="nc" id="L73">                    currentFaceUrl = currentUrl,</span>
+<span class="nc" id="L74">                    newFaceUrl = newUrl</span>
+                )
+            } else {
+<span class="nc" id="L77">                null</span>
+            }
+        }
+    }
+
+    fun reviewRequest(requestId: String, adminUserId: String, approved: Boolean) {
+<span class="nc" id="L83">        println(&quot;DEBUG [Service] - reviewRequest: RequestID=$requestId, Admin=$adminUserId, Aprovado=$approved&quot;)</span>
+
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        val request = changeRequestRepository.findById(requestId)</span>
+<span class="nc" id="L86">            ?: throw IllegalArgumentException(&quot;Solicitação não encontrada.&quot;)</span>
+
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (request.status != RequestStatus.PENDING) {</span>
+<span class="nc" id="L89">            println(&quot;DEBUG [Service] - Erro: Status atual é ${request.status}&quot;)</span>
+<span class="nc" id="L90">            throw IllegalStateException(&quot;Solicitação já processada.&quot;)</span>
+        }
+
+<span class="nc" id="L93">        val adminMember = memberRepository.findByUserIdAndOrganizationId(adminUserId, request.organizationId)</span>
+<span class="nc bnc" id="L94" title="All 4 branches missed.">        if (adminMember == null || adminMember.role != Role.ADMIN) {</span>
+<span class="nc" id="L95">            println(&quot;DEBUG [Service] - Erro: Usuário $adminUserId não é ADMIN.&quot;)</span>
+<span class="nc" id="L96">            throw IllegalAccessException(&quot;Apenas ADMINs podem revisar solicitações.&quot;)</span>
+        }
+
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (approved) {</span>
+<span class="nc" id="L100">            approve(request)</span>
+        } else {
+<span class="nc" id="L102">            reject(request)</span>
+        }
+<span class="nc" id="L104">    }</span>
+
+    private fun approve(request: ChangeRequest) {
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        val member = memberRepository.findByUserIdAndOrganizationId(request.userId, request.organizationId)</span>
+<span class="nc" id="L108">            ?: throw IllegalStateException(&quot;Membro não encontrado.&quot;)</span>
+
+        // Atualiza o OrganizationMember com a NOVA foto
+<span class="nc" id="L111">        memberRepository.updateFaceImageId(member.id, request.newFaceImageId)</span>
+
+        //  atualiza Status do Pedido
+<span class="nc" id="L114">        val updatedReq = request.copy(status = RequestStatus.APPROVED, updatedAt = Instant.now())</span>
+<span class="nc" id="L115">        changeRequestRepository.save(updatedReq)</span>
+
+<span class="nc" id="L117">        syncService.syncNewMember(request.organizationId, request.userId)</span>
+<span class="nc" id="L118">    }</span>
+
+    private fun reject(request: ChangeRequest) {
+<span class="nc" id="L121">        println(&quot;DEBUG [Service] - REJEITANDO solicitação ${request.id}...&quot;)</span>
+
+<span class="nc" id="L123">        cloudinaryService.delete(request.newFaceImageId)</span>
+<span class="nc" id="L124">        println(&quot;DEBUG [Service] - Imagem ${request.newFaceImageId} removida do Cloudinary.&quot;)</span>
+
+<span class="nc" id="L126">        val updatedReq = request.copy(status = RequestStatus.DENIED, updatedAt = Instant.now())</span>
+<span class="nc" id="L127">        changeRequestRepository.save(updatedReq)</span>
+<span class="nc" id="L128">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>imageProcessingService.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.service</a> &gt; <span class="el_source">imageProcessingService.kt</span></div><h1>imageProcessingService.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.service
+
+import net.coobird.thumbnailator.Thumbnails
+import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+
+<span class="fc" id="L9">@Service</span>
+<span class="fc" id="L10">class ImageProcessingService {</span>
+
+<span class="fc" id="L12">    private val targetSize = 1024 // Define o tamanho máximo (largura ou altura)</span>
+<span class="fc" id="L13">    private val outputQuality = 0.85f // Define a qualidade do JPG (85%)</span>
+
+    /**
+     * Processa e otimiza uma imagem para envio a uma API de reconhecimento facial.
+     */
+    fun processImageForApi(imageFile: MultipartFile): ByteArray {
+<span class="nc" id="L19">        return processImageBytes(imageFile.bytes)</span>
+    }
+
+    /**
+     * Sobrecarga do método para processar uma imagem que já está em um array de bytes.
+     */
+    fun processImageBytes(imageBytes: ByteArray): ByteArray {
+<span class="nc" id="L26">        val outputStream = ByteArrayOutputStream()</span>
+<span class="nc" id="L27">        val originalSizeKB = imageBytes.size / 1024</span>
+
+<span class="nc" id="L29">        Thumbnails.of(ByteArrayInputStream(imageBytes))</span>
+<span class="nc" id="L30">            .size(targetSize, targetSize)</span>
+<span class="nc" id="L31">            .outputFormat(&quot;jpg&quot;)</span>
+<span class="nc" id="L32">            .outputQuality(outputQuality)</span>
+<span class="nc" id="L33">            .toOutputStream(outputStream)</span>
+
+<span class="nc" id="L35">        val processedBytes = outputStream.toByteArray()</span>
+<span class="nc" id="L36">        val processedSizeKB = processedBytes.size / 1024</span>
+
+        // Adicione este log
+<span class="nc" id="L39">        println(&quot;DEBUG (ImageProcessing): Imagem otimizada. Tamanho original: $originalSizeKB KB -&gt; Tamanho final: $processedSizeKB KB&quot;)</span>
+
+<span class="nc" id="L41">        return processedBytes</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

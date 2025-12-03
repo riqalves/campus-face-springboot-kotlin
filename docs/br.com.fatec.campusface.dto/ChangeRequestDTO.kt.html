@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChangeRequestDTO.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.dto</a> &gt; <span class="el_source">ChangeRequestDTO.kt</span></div><h1>ChangeRequestDTO.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.dto
+
+
+import br.com.fatec.campusface.models.RequestStatus
+import jakarta.validation.constraints.NotBlank
+import java.time.Instant
+
+<span class="nc" id="L8">data class ChangeRequestCreateDTO(</span>
+<span class="nc" id="L9">    @field:NotBlank(message = &quot;O ID da nova imagem é obrigatório&quot;)</span>
+<span class="nc" id="L10">    val newFaceImageId: String,</span>
+
+<span class="nc" id="L12">    @field:NotBlank(message = &quot;O ID da organização é obrigatório&quot;)</span>
+<span class="nc" id="L13">    val organizationId: String</span>
+)
+
+<span class="nc" id="L16">data class ChangeRequestResponseDTO(</span>
+<span class="nc" id="L17">    val id: String,</span>
+<span class="nc" id="L18">    val status: RequestStatus,</span>
+<span class="nc" id="L19">    val requestedAt: Instant,</span>
+
+<span class="nc" id="L21">    val organizationId: String,</span>
+
+<span class="nc" id="L23">    val userFullName: String,</span>
+<span class="nc" id="L24">    val currentFaceUrl: String?, // A foto que está valendo hoje</span>
+<span class="nc" id="L25">    val newFaceUrl: String       // A foto que ele quer colocar</span>
+)
+
+<span class="nc" id="L28">data class ReviewRequestDTO(</span>
+<span class="nc" id="L29">    val approved: Boolean // true = APROVAR, false = REJEITAR</span>
+)
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

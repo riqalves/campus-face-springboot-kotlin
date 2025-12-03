@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthController.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.controller</a> &gt; <span class="el_source">AuthController.kt</span></div><h1>AuthController.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.controller
+
+import br.com.fatec.campusface.dto.ApiResponse
+import br.com.fatec.campusface.dto.LoginDTO
+import br.com.fatec.campusface.dto.UserDTO
+import br.com.fatec.campusface.models.Role
+import br.com.fatec.campusface.models.User
+import br.com.fatec.campusface.repository.UserRepository
+import br.com.fatec.campusface.service.AuthService
+import br.com.fatec.campusface.service.UserService
+import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.validation.Valid
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.AuthenticationException
+import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.core.userdetails.UsernameNotFoundException
+import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
+import java.util.Base64
+
+<span class="fc" id="L28">@RestController</span>
+@RequestMapping(&quot;/auth&quot;)
+<span class="fc" id="L30">class AuthController() {</span>
+
+    @Autowired
+    private lateinit var userService: UserService
+
+    @Autowired
+    private lateinit var authService: AuthService
+
+    @Autowired
+    private lateinit var authenticationManager: AuthenticationManager
+
+    @PostMapping(&quot;/login&quot;)
+    fun login(@RequestBody @Valid data: LoginDTO): ResponseEntity&lt;ApiResponse&lt;Map&lt;String, Any&gt;&gt;&gt; {
+<span class="fc" id="L43">        return try {</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">            if (!userService.validateEmail(data.email)) {</span>
+<span class="fc" id="L45">                return ResponseEntity</span>
+<span class="fc" id="L46">                    .status(HttpStatus.UNAUTHORIZED)</span>
+<span class="fc" id="L47">                    .body(ApiResponse(message = &quot;Padrão de email invalido (@)&quot;, success = false, data = null))</span>
+            }
+
+            // 1. Cria o token com as credenciais recebidas
+<span class="fc" id="L51">            val usernamePassword = UsernamePasswordAuthenticationToken(data.email, data.password)</span>
+
+            // 2. CORREÇÃO: Chama o AuthenticationManager para verificar a senha!
+            // Se a senha estiver errada, ele lança AuthenticationException e cai no catch.
+<span class="fc" id="L55">            val auth = authenticationManager.authenticate(usernamePassword)</span>
+
+            // 3. Se passou (não deu erro), busca os dados do usuário
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">            val userDto = userService.getUserByEmail(data.email)</span>
+<span class="nc" id="L59">                ?: throw UsernameNotFoundException(&quot;Usuário não encontrado&quot;)</span>
+
+<span class="fc" id="L61">            val token = authService.generateToken(userDto)</span>
+
+<span class="fc" id="L63">            val responseBody = mapOf(</span>
+<span class="fc" id="L64">                &quot;token&quot; to token,</span>
+<span class="fc" id="L65">                &quot;user&quot; to userDto</span>
+            )
+
+<span class="fc" id="L68">            ResponseEntity.ok(</span>
+<span class="fc" id="L69">                ApiResponse(</span>
+<span class="fc" id="L70">                    message = &quot;Login realizado com sucesso&quot;,</span>
+<span class="fc" id="L71">                    success = true,</span>
+<span class="fc" id="L72">                    data = responseBody</span>
+                )
+            )
+<span class="fc" id="L75">        } catch (e: AuthenticationException) {</span>
+            // Agora sim este bloco será alcançado quando a senha for inválida
+            ResponseEntity
+<span class="fc" id="L78">                .status(HttpStatus.UNAUTHORIZED)</span>
+<span class="fc" id="L79">                .body(ApiResponse(message = &quot;Credenciais inválidas: ${e.message}&quot;, success = false, data = null))</span>
+        }
+    }
+
+
+    @PostMapping(&quot;/register&quot;, consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun register(
+        @RequestParam(&quot;fullName&quot;) fullName: String,
+        @RequestParam(&quot;email&quot;) email: String,
+        @RequestParam(&quot;hashedPassword&quot;) password: String,
+        @RequestParam(&quot;document&quot;) document: String,
+        @RequestPart(&quot;image&quot;, required = false) image: MultipartFile?
+    ): ResponseEntity&lt;ApiResponse&lt;Any&gt;&gt; {
+<span class="fc" id="L92">        return try {</span>
+<span class="fc" id="L93">            val userData = User(</span>
+<span class="fc" id="L94">                fullName = fullName,</span>
+<span class="fc" id="L95">                email = email,</span>
+<span class="fc" id="L96">                hashedPassword = password,</span>
+<span class="fc" id="L97">                document = document</span>
+            )
+<span class="fc" id="L99">            println(&quot;DEBUG: $userData&quot;)</span>
+
+<span class="fc" id="L101">            val createdUserDto = userService.createUser(userData, image)</span>
+
+<span class="fc" id="L103">            ResponseEntity.status(HttpStatus.CREATED).body(</span>
+<span class="fc" id="L104">                ApiResponse(</span>
+<span class="fc" id="L105">                    success = true,</span>
+<span class="fc" id="L106">                    message = &quot;Usuário registrado e associado à organização com sucesso!&quot;,</span>
+<span class="fc" id="L107">                    data = createdUserDto</span>
+                )
+            )
+
+<span class="fc" id="L111">        } catch (e: IllegalArgumentException) {</span>
+<span class="fc" id="L112">            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(</span>
+<span class="fc" id="L113">                ApiResponse(</span>
+<span class="fc" id="L114">                    success = false,</span>
+<span class="fc" id="L115">                    message = &quot;Ocorreu um erro. Argumento Ilegal ${e.message}&quot;,</span>
+<span class="fc" id="L116">                    data = null</span>
+                )
+            )
+<span class="pc" id="L119">        } catch (e: Exception) {</span>
+<span class="nc" id="L120">            println(&quot;Erro ao registrar usuário: ${e.message}&quot;)</span>
+<span class="nc" id="L121">            e.printStackTrace()</span>
+<span class="nc" id="L122">            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(</span>
+<span class="nc" id="L123">                ApiResponse(</span>
+<span class="nc" id="L124">                    message = &quot;Ocorreu um erro inesperado ao registrar o usuário.&quot;,</span>
+<span class="nc" id="L125">                    success = false,</span>
+<span class="nc" id="L126">                    data = null</span>
+                )
+            )
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

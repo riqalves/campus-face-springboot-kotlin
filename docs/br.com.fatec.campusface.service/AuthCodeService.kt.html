@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthCodeService.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.service</a> &gt; <span class="el_source">AuthCodeService.kt</span></div><h1>AuthCodeService.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.service
+
+import br.com.fatec.campusface.dto.GeneratedCodeResponse
+import br.com.fatec.campusface.dto.ValidationResponseDTO
+import br.com.fatec.campusface.models.AuthCode
+import br.com.fatec.campusface.models.MemberStatus
+import br.com.fatec.campusface.models.Role
+import br.com.fatec.campusface.repository.AuthCodeRepository
+import br.com.fatec.campusface.repository.OrganizationMemberRepository
+import org.springframework.stereotype.Service
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+
+<span class="fc" id="L14">@Service</span>
+<span class="fc" id="L15">class AuthCodeService(</span>
+<span class="fc" id="L16">    private val authCodeRepository: AuthCodeRepository,</span>
+<span class="fc" id="L17">    private val orgMemberRepository: OrganizationMemberRepository,</span>
+<span class="fc" id="L18">    private val orgMemberService: OrganizationMemberService // Reutilizamos para hidratar o DTO</span>
+) {
+
+    /**
+     * Gera um QR Code para um Membro entrar em uma Organização.
+     */
+    fun generateCode(userId: String, organizationId: String): GeneratedCodeResponse {
+<span class="fc bfc" id="L25" title="All 2 branches covered.">        val member = orgMemberRepository.findByUserIdAndOrganizationId(userId, organizationId)</span>
+<span class="fc" id="L26">            ?: throw IllegalArgumentException(&quot;Você não é membro desta organização.&quot;)</span>
+
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        if (member.status != MemberStatus.ACTIVE) {</span>
+<span class="fc" id="L29">            throw IllegalStateException(&quot;Seu cadastro nesta organização não está ativo (Status: ${member.status}).&quot;)</span>
+        }
+
+        // invalida códigos velhos
+<span class="fc" id="L33">        authCodeRepository.invalidatePreviousCodes(userId, organizationId)</span>
+
+        // gera novo código
+<span class="fc" id="L36">        val code = (100000..999999).random().toString() // Ex: 123456</span>
+<span class="fc" id="L37">        val expirationTime = Instant.now().plus(5, ChronoUnit.MINUTES)</span>
+
+<span class="fc" id="L39">        val newAuthCode = AuthCode(</span>
+<span class="fc" id="L40">            code = code,</span>
+<span class="fc" id="L41">            userId = userId,</span>
+<span class="fc" id="L42">            organizationId = organizationId,</span>
+<span class="fc" id="L43">            expirationTime = expirationTime</span>
+        )
+
+<span class="fc" id="L46">        authCodeRepository.save(newAuthCode)</span>
+
+<span class="fc" id="L48">        return GeneratedCodeResponse(newAuthCode.code, newAuthCode.expirationTime)</span>
+    }
+
+    /**
+     * Valida um código escaneado por um Validator.
+     */
+    fun validateCode(code: String, validatorUserId: String): ValidationResponseDTO {
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        val authCode = authCodeRepository.findValidByCode(code)</span>
+<span class="fc" id="L56">            ?: return ValidationResponseDTO(false, &quot;Código inválido, não encontrado ou já utilizado.&quot;, null)</span>
+
+        // Verificacao de validade temporal
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (Instant.now().isAfter(authCode.expirationTime)) {</span>
+<span class="fc" id="L60">            authCodeRepository.invalidateCode(authCode.id)</span>
+<span class="fc" id="L61">            return ValidationResponseDTO(false, &quot;Código expirado.&quot;, null)</span>
+        }
+
+        // Verifica se o validator tem permissão na Org do código
+<span class="fc" id="L65">        val validatorMember = orgMemberRepository.findByUserIdAndOrganizationId(validatorUserId, authCode.organizationId)</span>
+
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if (validatorMember == null ||</span>
+<span class="pc bpc" id="L68" title="1 of 4 branches missed.">            (validatorMember.role != Role.VALIDATOR &amp;&amp; validatorMember.role != Role.ADMIN) ||</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">            validatorMember.status != MemberStatus.ACTIVE) {</span>
+            // Não invalidamos o código aqui, pois pode ter sido apenas um erro de quem escaneou (fiscal errado)
+<span class="fc" id="L71">            throw IllegalAccessException(&quot;Você não tem permissão de VALIDATOR nesta organização.&quot;)</span>
+        }
+
+<span class="fc" id="L74">        authCodeRepository.invalidateCode(authCode.id)</span>
+
+        // busca dados do dono do código para mostrar na tela do validator
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        val targetMember = orgMemberRepository.findByUserIdAndOrganizationId(authCode.userId, authCode.organizationId)</span>
+<span class="fc" id="L78">            ?: return ValidationResponseDTO(false, &quot;Usuário do código não encontrado na organização.&quot;, null)</span>
+
+<span class="fc" id="L80">        val memberDto = orgMemberService.getMemberById(targetMember.id)</span>
+
+<span class="fc" id="L82">        return ValidationResponseDTO(</span>
+<span class="fc" id="L83">            valid = true,</span>
+<span class="fc" id="L84">            message = &quot;Acesso Autorizado!&quot;,</span>
+<span class="fc" id="L85">            member = memberDto</span>
+        )
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RegisteredClientService.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.service</a> &gt; <span class="el_source">RegisteredClientService.kt</span></div><h1>RegisteredClientService.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.service
+
+import br.com.fatec.campusface.dto.ClientCheckinDTO
+import br.com.fatec.campusface.dto.RegisteredClientResponseDTO
+import br.com.fatec.campusface.models.ClientStatus
+import br.com.fatec.campusface.models.RegisteredClient
+import br.com.fatec.campusface.models.Role
+import br.com.fatec.campusface.repository.OrganizationMemberRepository
+import br.com.fatec.campusface.repository.OrganizationRepository
+import br.com.fatec.campusface.repository.RegisteredClientRepository
+import org.springframework.stereotype.Service
+import java.time.Instant
+
+<span class="fc" id="L14">@Service</span>
+<span class="fc" id="L15">class RegisteredClientService(</span>
+<span class="fc" id="L16">    private val registeredClientRepository: RegisteredClientRepository,</span>
+<span class="fc" id="L17">    private val organizationRepository: OrganizationRepository,</span>
+<span class="fc" id="L18">    private val memberRepository: OrganizationMemberRepository,</span>
+<span class="fc" id="L19">    private val authService: AuthService</span>
+) {
+
+    fun processCheckin(data: ClientCheckinDTO, tokenHeader: String): RegisteredClientResponseDTO {
+        // 1. Resolver Token
+<span class="nc" id="L24">        val tokenRaw = tokenHeader.replace(&quot;Bearer &quot;, &quot;&quot;).trim()</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        if (tokenRaw.isBlank()) throw IllegalArgumentException(&quot;Token inválido.&quot;)</span>
+
+<span class="nc" id="L27">        val userId = authService.validateToken(tokenRaw)</span>
+<span class="nc bnc" id="L28" title="All 2 branches missed.">        if (userId.isBlank()) throw IllegalArgumentException(&quot;Token expirado.&quot;)</span>
+
+        // 2. Validar Hub (Usando hubCode conforme solicitado)
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        val organization = organizationRepository.findByHubCode(data.hubCode)</span>
+<span class="nc" id="L32">            ?: throw IllegalArgumentException(&quot;Hub não encontrado com o código: ${data.hubCode}&quot;)</span>
+
+        // 3. Validar Permissão
+<span class="nc" id="L35">        val member = memberRepository.findByUserIdAndOrganizationId(userId, organization.id)</span>
+<span class="nc bnc" id="L36" title="All 6 branches missed.">        if (member == null || (member.role != Role.VALIDATOR &amp;&amp; member.role != Role.ADMIN)) {</span>
+<span class="nc" id="L37">            throw IllegalAccessException(&quot;Sem permissão de Validador.&quot;)</span>
+        }
+
+        // 4. Limpeza do Endereço
+<span class="nc" id="L41">        var cleanAddress = data.server.trim()</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (cleanAddress.endsWith(&quot;/&quot;)) cleanAddress = cleanAddress.dropLast(1)</span>
+
+<span class="nc" id="L44">        cleanAddress = cleanAddress</span>
+<span class="nc" id="L45">            .replace(&quot;http://&quot;, &quot;&quot;)</span>
+<span class="nc" id="L46">            .replace(&quot;https://&quot;, &quot;&quot;)</span>
+
+        // 5. LÓGICA DE UPSERT VIA MACHINE ID
+        // Verifica se essa máquina já existe no sistema
+<span class="nc" id="L50">        val existingClient = registeredClientRepository.findByMachineId(data.machineId)</span>
+
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        val clientToSave = if (existingClient != null) {</span>
+            // Se existe, ATUALIZA o IP (caso tenha mudado) e o status
+<span class="nc" id="L54">            existingClient.copy(</span>
+<span class="nc" id="L55">                organizationId = organization.id, // Pode ter mudado de hub? Se sim, atualiza.</span>
+<span class="nc" id="L56">                ipAddress = cleanAddress,         // Atualiza o IP novo</span>
+<span class="nc" id="L57">                lastCheckin = Instant.now(),</span>
+<span class="nc" id="L58">                status = ClientStatus.ONLINE,</span>
+<span class="nc" id="L59">                updatedAt = Instant.now()</span>
+            )
+        } else {
+            // Se não existe, CRIA um novo registro
+<span class="nc" id="L63">            RegisteredClient(</span>
+<span class="nc" id="L64">                organizationId = organization.id,</span>
+<span class="nc" id="L65">                machineId = data.machineId,       // Salva o ID físico</span>
+<span class="nc" id="L66">                ipAddress = cleanAddress,</span>
+<span class="nc" id="L67">                name = &quot;Totem Python (${organization.hubCode})&quot;,</span>
+<span class="nc" id="L68">                lastCheckin = Instant.now(),</span>
+<span class="nc" id="L69">                status = ClientStatus.ONLINE</span>
+            )
+        }
+
+<span class="nc" id="L73">        val savedClient = registeredClientRepository.save(clientToSave)</span>
+
+<span class="nc" id="L75">        return RegisteredClientResponseDTO(</span>
+<span class="nc" id="L76">            id = savedClient.id,</span>
+<span class="nc" id="L77">            hubCode = organization.hubCode,</span>
+<span class="nc" id="L78">            machineId = savedClient.machineId,</span>
+<span class="nc" id="L79">            ipAddress = savedClient.ipAddress,</span>
+<span class="nc" id="L80">            status = savedClient.status.name</span>
+        )
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

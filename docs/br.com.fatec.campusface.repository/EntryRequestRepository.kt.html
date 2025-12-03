@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntryRequestRepository.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.repository</a> &gt; <span class="el_source">EntryRequestRepository.kt</span></div><h1>EntryRequestRepository.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.repository
+
+import br.com.fatec.campusface.models.EntryRequest
+import br.com.fatec.campusface.models.RequestStatus
+import br.com.fatec.campusface.service.UserService
+import com.google.cloud.firestore.Firestore
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Repository
+
+<span class="fc" id="L10">@Repository</span>
+<span class="fc" id="L11">class EntryRequestRepository(private val firestore: Firestore) {</span>
+
+    @Autowired
+    private lateinit var userService: UserService
+
+<span class="fc" id="L16">    private val collection = firestore.collection(&quot;entryRequests&quot;)</span>
+
+
+    // Cria um novo pedido de entrada
+    fun save(entryRequest: EntryRequest): EntryRequest {
+<span class="nc" id="L21">        val docRef = collection.document()</span>
+<span class="nc" id="L22">        val requestWithId = entryRequest.copy(id = docRef.id)</span>
+<span class="nc" id="L23">        docRef.set(requestWithId).get()</span>
+<span class="nc" id="L24">        return requestWithId</span>
+    }
+
+    // Buscar por ID
+    fun findById(id: String): EntryRequest? {
+<span class="nc" id="L29">        val doc = collection.document(id).get().get()</span>
+<span class="nc bnc" id="L30" title="All 2 branches missed.">        return if (doc.exists()) doc.toObject(EntryRequest::class.java) else null</span>
+    }
+
+    // Buscar todos os pedidos de uma organização dependendo do status
+    fun findByOrganizationIdAndStatus(organizationId: String, status: RequestStatus): List&lt;EntryRequest&gt; {
+<span class="nc" id="L35">        val snapshot = collection</span>
+<span class="nc" id="L36">            .whereEqualTo(&quot;organizationId&quot;, organizationId)</span>
+<span class="nc" id="L37">            .whereEqualTo(&quot;status&quot;, status.name) // Firestore salva Enums como String</span>
+<span class="nc" id="L38">            .get()</span>
+<span class="nc" id="L39">            .get()</span>
+
+<span class="nc" id="L41">        return snapshot.documents.mapNotNull { it.toObject(EntryRequest::class.java) }</span>
+    }
+
+    fun updateStatus(id: String, newStatus: RequestStatus) {
+<span class="nc" id="L45">        collection.document(id).update(&quot;status&quot;, newStatus.name).get()</span>
+<span class="nc" id="L46">    }</span>
+
+    // Se precisar deletar
+    fun delete(id: String) {
+<span class="nc" id="L50">        collection.document(id).delete().get()</span>
+<span class="nc" id="L51">    }</span>
+
+    // Busca todas as solicitações feitas por um usuário específico
+    fun findByUserId(userId: String): List&lt;EntryRequest&gt; {
+<span class="nc" id="L55">        val snapshot = collection</span>
+<span class="nc" id="L56">            .whereEqualTo(&quot;userId&quot;, userId)</span>
+            // .orderBy(&quot;requestedAt&quot;, Query.Direction.DESCENDING) // Opcional: ordenar por data se criar índice no Firestore
+<span class="nc" id="L58">            .get()</span>
+<span class="nc" id="L59">            .get()</span>
+
+<span class="nc" id="L61">        return snapshot.documents.mapNotNull { it.toObject(EntryRequest::class.java) }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

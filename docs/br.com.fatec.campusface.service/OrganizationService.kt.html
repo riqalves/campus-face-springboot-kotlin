@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrganizationService.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.service</a> &gt; <span class="el_source">OrganizationService.kt</span></div><h1>OrganizationService.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.service
+
+import br.com.fatec.campusface.dto.OrganizationCreateDTO
+import br.com.fatec.campusface.dto.OrganizationResponseDTO
+import br.com.fatec.campusface.dto.OrganizationUpdateDTO
+import br.com.fatec.campusface.dto.UserDTO
+import br.com.fatec.campusface.models.*
+import br.com.fatec.campusface.repository.OrganizationMemberRepository
+import br.com.fatec.campusface.repository.OrganizationRepository
+import br.com.fatec.campusface.repository.UserRepository
+import org.springframework.stereotype.Service
+
+
+<span class="fc" id="L14">@Service</span>
+<span class="fc" id="L15">class OrganizationService(</span>
+<span class="fc" id="L16">    private val organizationRepository: OrganizationRepository,</span>
+<span class="fc" id="L17">    private val organizationMemberRepository: OrganizationMemberRepository,</span>
+<span class="fc" id="L18">    private val userRepository: UserRepository,</span>
+<span class="fc" id="L19">    private val cloudinaryService: CloudinaryService,</span>
+) {
+
+
+    fun createOrganization(orgData: OrganizationCreateDTO, creatorAdmin: User): Organization {
+<span class="nc bnc" id="L24" title="All 2 branches missed.">        if (organizationRepository.findByHubCode(orgData.hubCode) != null) {</span>
+<span class="nc" id="L25">            throw IllegalArgumentException(&quot;Organizacao já existe, codigo ja em uso&quot;)</span>
+        }
+
+<span class="nc" id="L28">        val newOrganization = Organization(</span>
+<span class="nc" id="L29">            name = orgData.name,</span>
+<span class="nc" id="L30">            description = orgData.description,</span>
+<span class="nc" id="L31">            hubCode = orgData.hubCode,</span>
+<span class="nc" id="L32">            adminIds = listOf(creatorAdmin.id),</span>
+        )
+
+<span class="nc" id="L35">        val savedOrg = organizationRepository.save(newOrganization)</span>
+
+<span class="nc" id="L37">        val adminMember = OrganizationMember(</span>
+<span class="nc" id="L38">            organizationId = savedOrg.id,</span>
+<span class="nc" id="L39">            userId = creatorAdmin.id,</span>
+<span class="nc" id="L40">            role = Role.ADMIN,</span>
+<span class="nc" id="L41">            status = MemberStatus.ACTIVE,</span>
+<span class="nc" id="L42">            faceImageId = creatorAdmin.faceImageId, // O admin pode ter foto ou nao</span>
+        )
+
+<span class="nc" id="L45">        organizationMemberRepository.save(adminMember)</span>
+<span class="nc" id="L46">        return savedOrg</span>
+    }
+
+
+    fun getAllOrganizations(): List&lt;OrganizationResponseDTO&gt; {
+<span class="nc" id="L51">        val organizations = organizationRepository.findAll()</span>
+<span class="nc" id="L52">        return organizations.map {org -&gt; hydrateOrganization(org)}</span>
+    }
+
+    fun getOrganizationById(id: String): OrganizationResponseDTO? {
+<span class="nc" id="L56">        val organization = organizationRepository.findById(id)</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        return organization?.let { org -&gt; hydrateOrganization(org) }</span>
+    }
+
+    fun getOrganizationByHubCode(hubCode: String): OrganizationResponseDTO? {
+<span class="nc" id="L61">        val organization = organizationRepository.findByHubCode(hubCode)</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        return organization?.let { org -&gt; hydrateOrganization(org) }</span>
+    }
+
+    fun updateOrganization(id: String, orgData: OrganizationUpdateDTO): OrganizationResponseDTO? {
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        val existingOrg = organizationRepository.findById(id) ?: return null</span>
+
+<span class="nc" id="L68">        val updatedOrg = existingOrg.copy(</span>
+<span class="nc" id="L69">            name = orgData.name,</span>
+<span class="nc" id="L70">            description = orgData.description</span>
+        )
+
+<span class="nc" id="L73">        val savedOrg = organizationRepository.update(id, updatedOrg)</span>
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        return savedOrg?.let { org -&gt; hydrateOrganization(org) }</span>
+    }
+
+    fun deleteOrganization(id: String): Boolean {
+<span class="nc" id="L79">        return organizationRepository.delete(id)</span>
+    }
+
+
+
+    /**
+     * Lista todas as organizações onde o usuário é membro (ADMIN, VALIDATOR ou MEMBER).
+     */
+    fun listUserHubs(userId: String): List&lt;OrganizationResponseDTO&gt; {
+        // procura os vinculos od user
+<span class="nc" id="L89">        val memberships = organizationMemberRepository.findAllByUserId(userId)</span>
+
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (memberships.isEmpty()) {</span>
+<span class="nc" id="L92">            return emptyList()</span>
+        }
+
+        // pega os ids das organizações
+<span class="nc" id="L96">        val organizationIds = memberships.map { it.organizationId }.distinct()</span>
+
+        // detalhes das organizações
+<span class="nc" id="L99">        val organizations = organizationRepository.findAllByIds(organizationIds)</span>
+
+<span class="nc" id="L101">        return organizations.map { org -&gt; hydrateOrganization(org) }</span>
+    }
+
+
+    /**
+     * Converte Organization (Entity) -&gt; OrganizationResponseDTO.
+     * Busca os dados completos dos usuários para preencher as listas.
+     */
+    private fun hydrateOrganization(organization: Organization): OrganizationResponseDTO {
+<span class="nc" id="L110">        val admins = userRepository.findAllByIds(organization.adminIds).map { it.toDTO() }</span>
+<span class="nc" id="L111">        val validators = userRepository.findAllByIds(organization.validatorIds).map { it.toDTO() }</span>
+<span class="nc" id="L112">        val members = userRepository.findAllByIds(organization.memberIds).map { it.toDTO() }</span>
+
+<span class="nc" id="L114">        return OrganizationResponseDTO(</span>
+<span class="nc" id="L115">            id = organization.id,</span>
+<span class="nc" id="L116">            name = organization.name,</span>
+<span class="nc" id="L117">            description = organization.description,</span>
+<span class="nc" id="L118">            hubCode = organization.hubCode,</span>
+<span class="nc" id="L119">            admins = admins,</span>
+<span class="nc" id="L120">            validators = validators,</span>
+<span class="nc" id="L121">            members = members</span>
+        )
+    }
+
+
+    /**
+     * Converte User (Entity) -&gt; UserDTO.
+     * Gera URL assinada temporária para a imagem.
+     */
+    private fun User.toDTO(): UserDTO {
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        val temporaryImageUrl = this.faceImageId?.let { publicId -&gt;</span>
+<span class="nc" id="L132">            cloudinaryService.generateSignedUrl(publicId)</span>
+        }
+<span class="nc" id="L134">        return UserDTO.fromEntity(this, temporaryImageUrl)</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

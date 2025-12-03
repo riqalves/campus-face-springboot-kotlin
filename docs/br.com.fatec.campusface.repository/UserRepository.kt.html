@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserRepository.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.repository</a> &gt; <span class="el_source">UserRepository.kt</span></div><h1>UserRepository.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.repository
+
+import br.com.fatec.campusface.models.User
+import com.google.cloud.firestore.Firestore
+import com.google.cloud.firestore.FieldPath
+import org.springframework.stereotype.Repository
+
+
+<span class="fc" id="L9">@Repository</span>
+<span class="fc" id="L10">class UserRepository(private val firestore: Firestore) {</span>
+
+<span class="fc" id="L12">    private val collection = firestore.collection(&quot;users&quot;)</span>
+
+    fun save(user: User): User {
+<span class="nc bnc" id="L15" title="All 4 branches missed.">        val docRef = if (user.id.isNotEmpty()) {</span>
+<span class="nc" id="L16">            collection.document(user.id)</span>
+        } else {
+<span class="nc" id="L18">            collection.document()</span>
+        }
+
+<span class="nc" id="L21">        val userWithId = user.copy(id = docRef.id)</span>
+
+        
+<span class="nc" id="L24">        docRef.set(userWithId).get()</span>
+
+<span class="nc" id="L26">        return userWithId</span>
+    }
+
+    fun findAll(): List&lt;User&gt; {
+<span class="nc" id="L30">        val snapshot = collection.get().get()</span>
+<span class="nc" id="L31">        return snapshot.documents.mapNotNull { doc -&gt;</span>
+<span class="nc bnc" id="L32" title="All 2 branches missed.">            doc.toObject(User::class.java)?.copy(id = doc.id)</span>
+        }
+    }
+
+    fun findById(id: String): User? {
+<span class="nc" id="L37">        val documentSnapshot = collection.document(id).get().get()</span>
+
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (documentSnapshot.exists()) {</span>
+<span class="nc" id="L40">            val userObject = documentSnapshot.toObject(User::class.java)</span>
+
+<span class="nc bnc" id="L42" title="All 2 branches missed.">            return userObject?.copy(id = documentSnapshot.id)</span>
+        }
+
+<span class="nc" id="L45">        return null</span>
+    }
+    fun findByEmail(email: String): User? {
+<span class="nc" id="L48">        val snapshot = collection</span>
+<span class="nc" id="L49">            .whereEqualTo(&quot;email&quot;, email)</span>
+<span class="nc" id="L50">            .limit(1)</span>
+<span class="nc" id="L51">            .get()</span>
+<span class="nc" id="L52">            .get()</span>
+
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (snapshot.isEmpty) {</span>
+<span class="nc" id="L55">            return null</span>
+        }
+
+<span class="nc" id="L58">        val document = snapshot.documents.first()</span>
+<span class="nc" id="L59">        return document.toObject(User::class.java).copy(id = document.id)</span>
+    }
+
+
+    fun delete(id: String): Boolean {
+<span class="nc" id="L64">        return try {</span>
+<span class="nc" id="L65">            collection.document(id).delete().get()</span>
+<span class="nc" id="L66">            true</span>
+<span class="nc" id="L67">        } catch (e: Exception) {</span>
+<span class="nc" id="L68">            false</span>
+        }
+    }
+
+    /**
+     * Busca uma lista de usuários com base em uma lista de IDs.
+     * @param userIds A lista de IDs dos usuários a serem buscados.
+     * @return Uma lista de objetos User correspondentes aos IDs encontrados.
+     */
+    fun findAllByIds(userIds: List&lt;String&gt;): List&lt;User&gt; {
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (userIds.isEmpty()) {</span>
+<span class="nc" id="L79">            return emptyList()</span>
+        }
+
+<span class="nc" id="L82">        val snapshot = collection</span>
+<span class="nc" id="L83">            .whereIn(FieldPath.documentId(), userIds)</span>
+<span class="nc" id="L84">            .get()</span>
+<span class="nc" id="L85">            .get()</span>
+
+<span class="nc" id="L87">        return snapshot.documents.mapNotNull { document -&gt;</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">            document.toObject(User::class.java)?.copy(id = document.id)</span>
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

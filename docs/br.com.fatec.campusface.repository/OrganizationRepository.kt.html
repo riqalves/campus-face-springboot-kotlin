@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrganizationRepository.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.repository</a> &gt; <span class="el_source">OrganizationRepository.kt</span></div><h1>OrganizationRepository.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.repository
+
+import br.com.fatec.campusface.models.Organization
+import br.com.fatec.campusface.models.OrganizationMember
+import com.google.cloud.firestore.FieldPath
+import com.google.cloud.firestore.FieldValue
+import com.google.cloud.firestore.Firestore
+import org.springframework.stereotype.Repository
+
+
+<span class="fc" id="L11">@Repository</span>
+<span class="fc" id="L12">class OrganizationRepository(private val firestore: Firestore) {</span>
+
+<span class="fc" id="L14">    private val collection = firestore.collection(&quot;organizations&quot;)</span>
+
+
+    fun save(organization: Organization): Organization {
+<span class="nc" id="L18">        val docRef = collection.document()</span>
+
+<span class="nc" id="L20">        val organizationWithId = organization.copy(id = docRef.id)</span>
+<span class="nc" id="L21">        docRef.set(organizationWithId).get()</span>
+<span class="nc" id="L22">        return organizationWithId</span>
+    }
+
+
+    fun findById(id: String): Organization? {
+<span class="nc" id="L27">        val doc = collection.document(id).get().get()</span>
+<span class="nc bnc" id="L28" title="All 2 branches missed.">        return if (doc.exists()) doc.toObject(Organization::class.java) else null</span>
+    }
+
+    fun findByHubCode(hubCode: String): Organization? {
+<span class="nc" id="L32">        val snapshot = collection.whereEqualTo(&quot;hubCode&quot;, hubCode)</span>
+<span class="nc" id="L33">            .limit(1)</span>
+<span class="nc" id="L34">            .get().get()</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">        return snapshot.documents.firstOrNull()?.toObject(Organization::class.java)</span>
+    }
+
+    fun findAll(): List&lt;Organization&gt; {
+<span class="nc" id="L39">        val docs = collection.get().get().documents</span>
+<span class="nc" id="L40">        return docs.mapNotNull { it.toObject(Organization::class.java) }</span>
+    }
+
+
+    fun findAllByIds(ids: List&lt;String&gt;): List&lt;Organization&gt; {
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (ids.isEmpty()) return emptyList()</span>
+
+<span class="nc" id="L47">        val snapshot = collection</span>
+<span class="nc" id="L48">            .whereIn(FieldPath.documentId(), ids)</span>
+<span class="nc" id="L49">            .get().get()</span>
+<span class="nc" id="L50">        return snapshot.toObjects(Organization::class.java)</span>
+
+    }
+
+    fun update(id: String, organization: Organization): Organization? {
+<span class="nc" id="L55">        val docRef = collection.document(id)</span>
+        // Verifica se o documento existe antes de tentar atualizar
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (docRef.get().get().exists()) {</span>
+<span class="nc" id="L58">            docRef.set(organization).get()</span>
+<span class="nc" id="L59">            return organization</span>
+        }
+<span class="nc" id="L61">        return null</span>
+    }
+
+    fun delete(id: String): Boolean {
+<span class="nc" id="L65">        val docRef = collection.document(id)</span>
+<span class="nc" id="L66">        val doc = docRef.get().get()</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        return if (doc.exists()) {</span>
+<span class="nc" id="L68">            docRef.delete().get()</span>
+<span class="nc" id="L69">            true</span>
+        } else {
+<span class="nc" id="L71">            false</span>
+        }
+    }
+
+    fun addMemberToOrganization(organizationId: String, memberId: String) {
+<span class="nc" id="L76">        collection.document(organizationId).update(&quot;memberIds&quot;, FieldValue.arrayUnion(memberId))</span>
+<span class="nc" id="L77">    }</span>
+
+    fun addValidatorToOrganization(organizationId: String, validatorId: String) {
+<span class="nc" id="L80">        collection.document(organizationId).update(&quot;validatorIds&quot;, FieldValue.arrayUnion(validatorId))</span>
+<span class="nc" id="L81">    }</span>
+
+    fun addAdminToOrganization(organizationId: String, adminId: String) {
+<span class="nc" id="L84">        collection.document(organizationId).update(&quot;adminIds&quot;, FieldValue.arrayUnion(adminId))</span>
+<span class="nc" id="L85">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

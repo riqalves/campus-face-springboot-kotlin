@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrganizationMemberController.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">campusface</a> &gt; <a href="index.source.html" class="el_package">br.com.fatec.campusface.controller</a> &gt; <span class="el_source">OrganizationMemberController.kt</span></div><h1>OrganizationMemberController.kt</h1><pre class="source lang-java linenums">package br.com.fatec.campusface.controller
+
+import br.com.fatec.campusface.dto.ApiResponse
+import br.com.fatec.campusface.dto.MemberUpdateDTO
+import br.com.fatec.campusface.dto.OrganizationMemberDTO
+import br.com.fatec.campusface.models.Role
+import br.com.fatec.campusface.models.User
+import br.com.fatec.campusface.repository.OrganizationMemberRepository
+import br.com.fatec.campusface.service.OrganizationMemberService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
+import org.springframework.web.bind.annotation.*
+
+<span class="fc" id="L17">@RestController</span>
+@RequestMapping(&quot;/members&quot;)
+@SecurityRequirement(name = &quot;bearerAuth&quot;)
+<span class="fc" id="L20">class OrganizationMemberController(</span>
+<span class="fc" id="L21">    private val memberService: OrganizationMemberService,</span>
+<span class="fc" id="L22">    private val memberRepository: OrganizationMemberRepository // Usado para checar permissões</span>
+) {
+
+    @GetMapping(&quot;/organization/{organizationId}&quot;)
+    @Operation(summary = &quot;Lista membros de uma organização&quot;, description = &quot;Opcionalmente filtre por cargo usando ?role=MEMBER&quot;)
+    fun listMembers(
+        @PathVariable organizationId: String,
+        @RequestParam(required = false) role: Role?,
+        authentication: Authentication
+    ): ResponseEntity&lt;ApiResponse&lt;List&lt;OrganizationMemberDTO&gt;&gt;&gt; {
+<span class="fc" id="L32">        val user = authentication.principal as User</span>
+
+        // Verificação de Segurança
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        if (!hasPermission(user.id, organizationId, listOf(Role.ADMIN, Role.VALIDATOR))) {</span>
+<span class="fc" id="L36">            return ResponseEntity.status(HttpStatus.FORBIDDEN)</span>
+<span class="fc" id="L37">                .body(ApiResponse(success = false, message = &quot;Você não tem permissão para visualizar membros desta organização.&quot;, data = null))</span>
+        }
+
+        // Passa o filtro para o service
+<span class="fc" id="L41">        val members = memberService.getAllMembers(organizationId, role)</span>
+
+<span class="fc" id="L43">        return ResponseEntity.ok(ApiResponse(success = true, message = &quot;Membros listados.&quot;, data = members))</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    @Operation(summary = &quot;Busca um membro específico pelo ID do vínculo&quot;)
+    fun getMember(@PathVariable id: String, authentication: Authentication): ResponseEntity&lt;ApiResponse&lt;OrganizationMemberDTO&gt;&gt; {
+<span class="fc" id="L49">        val user = authentication.principal as User</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        val member = memberService.getMemberById(id)</span>
+<span class="fc" id="L51">            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L52">                .body(ApiResponse(success = false, message = &quot;Membro não encontrado.&quot;, data = null))</span>
+
+        // Verificação de Segurança (precisamos saber a org do membro alvo primeiro)
+        // Permite que o próprio usuário veja seus dados ou um Admin/Validator da org
+<span class="fc" id="L56">        val isSelf = member.user.id == user.id</span>
+<span class="fc bfc" id="L57" title="All 4 branches covered.">        if (!isSelf &amp;&amp; !hasPermission(user.id, authenticationOrgId(id), listOf(Role.ADMIN, Role.VALIDATOR))) {</span>
+<span class="fc" id="L58">            return ResponseEntity.status(HttpStatus.FORBIDDEN)</span>
+<span class="fc" id="L59">                .body(ApiResponse(success = false, message = &quot;Acesso negado.&quot;, data = null))</span>
+        }
+
+<span class="fc" id="L62">        return ResponseEntity.ok(ApiResponse(success = true, message = &quot;Membro encontrado.&quot;, data = member))</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    @Operation(summary = &quot;Atualiza Role ou Status de um membro&quot;, description = &quot;Requer permissão de ADMIN. Use para promover membros ou banir/ativar acesso.&quot;)
+    fun updateMember(
+        @PathVariable id: String,
+        @RequestBody dto: MemberUpdateDTO,
+        authentication: Authentication
+    ): ResponseEntity&lt;ApiResponse&lt;OrganizationMemberDTO&gt;&gt; {
+<span class="fc" id="L72">        val user = authentication.principal as User</span>
+
+        // 1. Busca o membro alvo para saber de qual organização ele é
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        val targetMember = memberRepository.findById(id)</span>
+<span class="nc" id="L76">            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L77">                .body(ApiResponse(success = false, message = &quot;Membro não encontrado.&quot;, data = null))</span>
+
+        // 2. Verifica se quem está pedindo é ADMIN daquela organização
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (!hasPermission(user.id, targetMember.organizationId, listOf(Role.ADMIN))) {</span>
+<span class="nc" id="L81">            return ResponseEntity.status(HttpStatus.FORBIDDEN)</span>
+<span class="nc" id="L82">                .body(ApiResponse(success = false, message = &quot;Apenas ADMINs podem gerenciar membros.&quot;, data = null))</span>
+        }
+
+        // 3. Impede que o Admin remova seu próprio acesso de Admin (opcional, mas recomendado)
+<span class="pc bpc" id="L86" title="2 of 6 branches missed.">        if (targetMember.userId == user.id &amp;&amp; dto.role != Role.ADMIN &amp;&amp; dto.role != null) {</span>
+<span class="fc" id="L87">            return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="fc" id="L88">                .body(ApiResponse(success = false, message = &quot;Você não pode rebaixar seu próprio cargo de ADMIN.&quot;, data = null))</span>
+        }
+
+<span class="fc" id="L91">        var updatedMemberDto: OrganizationMemberDTO? = null</span>
+
+        // Aplica atualizações
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        if (dto.role != null) {</span>
+<span class="fc" id="L95">            updatedMemberDto = memberService.updateMemberRole(id, dto.role)</span>
+        }
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">        if (dto.status != null) {</span>
+<span class="nc" id="L98">            updatedMemberDto = memberService.updateMemberStatus(id, dto.status)</span>
+        }
+
+        // Se nada foi enviado no JSON
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (updatedMemberDto == null) {</span>
+<span class="nc" id="L103">            updatedMemberDto = memberService.getMemberById(id)</span>
+        }
+
+<span class="fc" id="L106">        return ResponseEntity.ok(ApiResponse(success = true, message = &quot;Membro atualizado.&quot;, data = updatedMemberDto))</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    @Operation(summary = &quot;Remove um membro da organização&quot;, description = &quot;Requer permissão de ADMIN.&quot;)
+    fun removeMember(
+        @PathVariable id: String,
+        authentication: Authentication
+    ): ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; {
+<span class="fc" id="L115">        val user = authentication.principal as User</span>
+
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">        val targetMember = memberRepository.findById(id)</span>
+<span class="nc" id="L118">            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L119">                .body(ApiResponse(success = false, message = &quot;Membro não encontrado.&quot;, data = null))</span>
+
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        if (!hasPermission(user.id, targetMember.organizationId, listOf(Role.ADMIN))) {</span>
+<span class="nc" id="L122">            return ResponseEntity.status(HttpStatus.FORBIDDEN)</span>
+<span class="nc" id="L123">                .body(ApiResponse(success = false, message = &quot;Apenas ADMINs podem remover membros.&quot;, data = null))</span>
+        }
+
+<span class="fc" id="L126">        memberService.removeMember(id)</span>
+
+<span class="fc" id="L128">        return ResponseEntity.ok(ApiResponse(success = true, message = &quot;Membro removido da organização.&quot;, data = null))</span>
+    }
+
+    // --- Métodos Privados de Auxílio à Segurança ---
+
+    /**
+     * Verifica se o usuário (requesterId) possui uma das roles permitidas na organização alvo.
+     */
+    private fun hasPermission(requesterId: String, organizationId: String, allowedRoles: List&lt;Role&gt;): Boolean {
+<span class="fc" id="L137">        val membership = memberRepository.findByUserIdAndOrganizationId(requesterId, organizationId)</span>
+<span class="pc bpc" id="L138" title="2 of 6 branches missed.">        return membership != null &amp;&amp; allowedRoles.contains(membership.role) &amp;&amp; membership.status == br.com.fatec.campusface.models.MemberStatus.ACTIVE</span>
+    }
+
+    /**
+     * Recupera o ID da organização de um membro pelo ID do membro.
+     * Útil quando só temos o ID do membro na URL.
+     */
+    private fun authenticationOrgId(memberId: String): String {
+<span class="pc bpc" id="L146" title="2 of 4 branches missed.">        return memberRepository.findById(memberId)?.organizationId ?: &quot;&quot;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
