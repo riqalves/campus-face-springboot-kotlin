@@ -225,7 +225,7 @@ frontend/
     <summary><strong>Web (WASM)</strong></summary>
 
     ```bash
-    ./gradlew :composeApp:wasmJsBrowserRun
+    ./gradlew :composeApp:wasmJsBrowserDevelopmentRun
     ```
     Acesse: `http://localhost:8080`
     </details>
@@ -317,6 +317,7 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Acesso: `/swagger-ui.html`
 
 * As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
+
 
 
 
