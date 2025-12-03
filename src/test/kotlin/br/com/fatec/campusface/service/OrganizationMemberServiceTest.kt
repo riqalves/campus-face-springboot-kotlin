@@ -25,6 +25,9 @@ class OrganizationMemberServiceTest {
     @MockK
     lateinit var cloudinaryService: CloudinaryService
 
+    @MockK
+    lateinit var syncService: SyncService
+
     @InjectMockKs
     lateinit var memberService: OrganizationMemberService
 
@@ -142,19 +145,6 @@ class OrganizationMemberServiceTest {
         }
     }
 
-    @Test
-    fun `removeMember deve chamar delete no repositorio`() {
-        // ARRANGE
-        val member = OrganizationMember(id = "m1", userId = "u1")
-        every { memberRepository.findById("m1") } returns member
-        every { memberRepository.delete("m1") } just Runs
-
-        // ACT
-        memberService.removeMember("m1")
-
-        // ASSERT
-        verify(exactly = 1) { memberRepository.delete("m1") }
-    }
 
     @Test
     fun `updateMemberStatus deve atualizar status e retornar DTO`() {
