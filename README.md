@@ -36,7 +36,6 @@ O sistema utiliza uma arquitetura híbrida com **Google Firestore** (NoSQL) para
 * **Plataformas:** Android, iOS, Desktop (JVM), Web
 * **Arquitetura:** MVVM com ViewModel
 * **Build Tool:** Gradle (Versão mais recente)
-* **Requisitos:** JVM 21, Xcode (para iOS)
 
 ### Edge Service
 * **Linguagem:** Python 3.9.6
@@ -317,5 +316,6 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Acesso: `/swagger-ui.html`
 
 * As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
+
 
 
