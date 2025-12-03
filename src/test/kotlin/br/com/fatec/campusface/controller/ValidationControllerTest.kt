@@ -9,6 +9,7 @@ import br.com.fatec.campusface.models.User
 import br.com.fatec.campusface.repository.UserRepository
 import br.com.fatec.campusface.service.AuthCodeService
 import br.com.fatec.campusface.service.AuthService
+import br.com.fatec.campusface.service.SyncService
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -35,6 +36,7 @@ class ValidationControllerTest {
 
     @MockkBean
     lateinit var authCodeService: AuthCodeService
+
 
     // Mocks de infraestrutura necessários para o contexto subir
     @MockkBean
@@ -159,4 +161,6 @@ class ValidationControllerTest {
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.success").value(false))
     }
+
+
 }

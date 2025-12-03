@@ -145,7 +145,6 @@ class OrganizationMemberServiceTest {
         }
     }
 
-
     @Test
     fun `updateMemberStatus deve atualizar status e retornar DTO`() {
         // ARRANGE
@@ -209,5 +208,26 @@ class OrganizationMemberServiceTest {
         }
 
         assertEquals("Membro não encontrado", exception.message)
+    }
+
+    @Test
+    fun `removeMember deve chamar delete no repositorio e disparar sync`() {
+        // ARRANGE
+        val orgId = "org1"
+        val userId = "u1"
+        val member = OrganizationMember(id = "m1", userId = userId, organizationId = orgId)
+
+        every { memberRepository.findById("m1") } returns member
+        every { memberRepository.delete("m1") } just Runs
+
+        // CORREÇÃO: Mock do disparo do sync
+        every { syncService.syncMemberDeletion(orgId, userId) } just Runs
+
+        // ACT
+        memberService.removeMember("m1")
+
+        // ASSERT
+        verify(exactly = 1) { memberRepository.delete("m1") }
+        verify(exactly = 1) { syncService.syncMemberDeletion(orgId, userId) }
     }
 }
