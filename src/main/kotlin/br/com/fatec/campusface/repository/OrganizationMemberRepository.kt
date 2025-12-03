@@ -16,11 +16,9 @@ class OrganizationMemberRepository(private val firestore: Firestore) {
             throw IllegalArgumentException("O ID do usuário e da organização não podem ser vazios")
         }
 
-        // Se já tiver ID, atualiza. Se não, cria um novo documento.
         val docRef = if (member.id.isNotEmpty()) collection.document(member.id) else collection.document()
         val memberWithId = member.copy(id = docRef.id)
 
-        // Usamos .set() para criar ou sobrescrever
         docRef.set(memberWithId).get()
 
         return memberWithId

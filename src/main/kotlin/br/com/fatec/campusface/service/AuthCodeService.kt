@@ -29,7 +29,6 @@ class AuthCodeService(
             throw IllegalStateException("Seu cadastro nesta organização não está ativo (Status: ${member.status}).")
         }
 
-        // invalida códigos velhos
         authCodeRepository.invalidatePreviousCodes(userId, organizationId)
 
         // gera novo código
@@ -61,19 +60,16 @@ class AuthCodeService(
             return ValidationResponseDTO(false, "Código expirado.", null)
         }
 
-        // Verifica se o validator tem permissão na Org do código
         val validatorMember = orgMemberRepository.findByUserIdAndOrganizationId(validatorUserId, authCode.organizationId)
 
         if (validatorMember == null ||
             (validatorMember.role != Role.VALIDATOR && validatorMember.role != Role.ADMIN) ||
             validatorMember.status != MemberStatus.ACTIVE) {
-            // Não invalidamos o código aqui, pois pode ter sido apenas um erro de quem escaneou (fiscal errado)
             throw IllegalAccessException("Você não tem permissão de VALIDATOR nesta organização.")
         }
 
         authCodeRepository.invalidateCode(authCode.id)
 
-        // busca dados do dono do código para mostrar na tela do validator
         val targetMember = orgMemberRepository.findByUserIdAndOrganizationId(authCode.userId, authCode.organizationId)
             ?: return ValidationResponseDTO(false, "Usuário do código não encontrado na organização.", null)
 

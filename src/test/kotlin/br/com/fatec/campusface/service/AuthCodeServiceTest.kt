@@ -98,7 +98,6 @@ class AuthCodeServiceTest {
         assertEquals("Você não é membro desta organização.", exception.message)
     }
 
-    // --- CENÁRIOS DE VALIDAÇÃO (Onde estavam as linhas vermelhas) ---
 
     @Test
     fun `validateCode deve retornar invalido se o codigo nao existir`() {
