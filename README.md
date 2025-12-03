@@ -163,9 +163,10 @@ frontend/
 * **Gerenciamento de Perfil:** Visualização e edição de dados pessoais
 * **Criação de Hubs:** Criação e gerenciamento de organizações/campus
 * **Aprovação de Solicitações:** Aprovação de entry requests e change requests
-* **QR Code Dinâmico:** Geração de QR Codes com tempo de expiração para validação de acesso
+* **QR Code Dinâmico:** Geração e leitura de QR Codes com tempo de expiração para validação de acesso
 * **Troca de Foto de Perfil:** Upload e atualização de imagem facial
 * **Exibição de Dados:** Visualização de membros, permissões e histórico
+* **Funcionalidades Administrativas:** CRUDs das entidades do sistema
 
 ### Passos para Executar
 
@@ -316,6 +317,7 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Acesso: `/swagger-ui.html`
 
 * As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
+
 
 
 
