@@ -94,48 +94,6 @@ O sistema utiliza uma arquitetura híbrida com **Google Firestore** (NoSQL) para
 
 ---
 
-## 🚀 Instruções de Instalação e Execução (Edge Service)
-
-### Pré-requisitos
-* Python 3.9.6 instalado
-* CMake instalado
-* Ngrok instalado e configurado na máquina (https://ngrok.com)
-
-### Passos para Executar
-1.  **Clonar o repositório:**
-    ```bash
-    git clone https://github.com/riqalves/campus-face-springboot-kotlin.git
-    cd campus-face-springboot-kotlin/edge
-    ```
-
-2.  **Configurar e rodar:**
-
-    Selecione o comando apropriado para o seu sistema operacional:
-
-    <details open>
-    <summary><strong>Linux / macOS</strong></summary>
-
-    ```bash
-    python3 -m venv venv        # Criação do ambiente
-    source venv/bin/activate    # Ativação
-    pip install -r requirements.txt # Instala dependências (se houver)
-    python main.py
-    ```
-    </details>
-
-    <details>
-    <summary><strong>Windows (PowerShell/CMD)</strong></summary>
-
-    ```powershell
-    python -m venv venv         # Criação do ambiente
-    .\venv\Scripts\activate     # Ativação
-    pip install -r requirements.txt # Instala dependências (se houver)
-    python main.py
-    ```
-    </details>
-
----
-
 ## 🚀 Instruções de Instalação e Execução (Frontend - Kotlin Multiplatform)
 
 ### Pré-requisitos
@@ -246,6 +204,48 @@ frontend/
 
 ---
 
+## 🚀 Instruções de Instalação e Execução (Edge Service)
+
+### Pré-requisitos
+* Python 3.9.6 instalado
+* CMake instalado
+* Ngrok instalado e configurado na máquina (https://ngrok.com)
+
+### Passos para Executar
+1.  **Clonar o repositório:**
+    ```bash
+    git clone https://github.com/riqalves/campus-face-springboot-kotlin.git
+    cd campus-face-springboot-kotlin/edge
+    ```
+
+2.  **Configurar e rodar:**
+
+    Selecione o comando apropriado para o seu sistema operacional:
+
+    <details open>
+    <summary><strong>Linux / macOS</strong></summary>
+
+    ```bash
+    python3 -m venv venv        # Criação do ambiente
+    source venv/bin/activate    # Ativação
+    pip install -r requirements.txt # Instala dependências (se houver)
+    python main.py
+    ```
+    </details>
+
+    <details>
+    <summary><strong>Windows (PowerShell/CMD)</strong></summary>
+
+    ```powershell
+    python -m venv venv         # Criação do ambiente
+    .\venv\Scripts\activate     # Ativação
+    pip install -r requirements.txt # Instala dependências (se houver)
+    python main.py
+    ```
+    </details>
+
+---
+
 ## 🎥 Demonstração do Projeto
 
 Assista ao vídeo de demonstração completo do **CampusFace** em funcionamento:
@@ -267,7 +267,10 @@ Assista ao vídeo de demonstração completo do **CampusFace** em funcionamento:
 
 Abaixo detalhamos como cada item da entrega foi implementado no código:
 
-### 1) Projeto Base Spring Boot com Kotlin
+### 1) ~~IOT~~ Edge Service
+Como foi acordado, substituímos a camada de IoT com ESP32 por um Edge Service em Python, pois o processo de reconhecimento facial exige maior complexidade de sincronização e processamento. Esse serviço precisa gerenciar e atualizar embeddings faciais em tempo real, garantir sincronização com o servidor central e executar pipelines de reconhecimento localmente com precisão. Dessa forma, o Python oferece melhor controle, desempenho e flexibilidade para lidar com modelos, atualizações de dados e fluxo contínuo de rostos, justificando plenamente a mudança arquitetural.
+
+### 2) Projeto Base Spring Boot com Kotlin
 O projeto foi criado utilizando Gradle com Kotlin DSL, contendo dependências `spring-boot-starter-web`, `spring-boot-starter-validation`, `spring-boot-starter-security` e `springdoc-openapi`.
 
 #### a) Implementação de Entidades
@@ -294,18 +297,9 @@ Como utilizamos Firestore, os repositórios são classes anotadas com `@Reposito
 
 #### c) Classes de Serviços (CRUD)
 Lógica de negócios implementada nas classes `@Service`:
-* **Criar:** `OrganizationService.createOrganization`, `UserService.createUser`.
-* **Ler:** `OrganizationMemberService.getAllMembers`, `UserService.getUserById`.
-* **Atualizar:** `OrganizationService.updateOrganization`, `OrganizationMemberService.updateMemberRole`.
-* **Remover:** `OrganizationController.delete`, `OrganizationMemberService.removeMember`.
 
 #### d) Controladores REST
-Controladores expõem rotas completas. O destaque é o **`OrganizationController`**):
-* `POST /organizations`: Criação.
-* `GET /organizations`: **Listar todos**.
-* `GET /organizations/{id}`: **Pegar por ID**.
-* `PUT /organizations/{id}`: Atualização.
-* `DELETE /organizations/{id}`: Remoção.
+Controladores expõem rotas completas.
 
 #### e) Validações com Bean Validation
 Utilizamos anotações do `jakarta.validation` nos DTOs e `@Valid` nos Controllers.
@@ -316,7 +310,7 @@ A documentação é gerada automaticamente pelo `springdoc-openapi`.
 * Configuração: `/configuration/OpenApiConfig.kt`.
 * Acesso: `/swagger-ui.html`
 
-* As capturas de tela dos endpoints funcionando (requests e responses) devem ser anexadas separadamente na entrega conforme solicitado.
+
 
 
 
