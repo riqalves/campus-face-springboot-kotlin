@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="5235aee4-a11f-4a84-b5aa-9dc5bf6e2c59" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Procfile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.config/FirebaseConfiguration.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.config/HttpClientConfig.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.config/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.config/index.source.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.configuration/CloudinaryConfig.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.configuration/CloudinaryConfig.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.configuration/OpenApiConfig.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.configuration/OpenApiConfig.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.configuration/SecurityConfiguration.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.configuration/SecurityConfiguration.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.configuration/SecurityFilter.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.configuration/SecurityFilter.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.configuration/WebConfig.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.configuration/WebConfig.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.configuration/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.configuration/index.source.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/AuthController.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/AuthController.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/ChangeRequestController.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/ChangeRequestController.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/EntryRequestController.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/EntryRequestController.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/OrganizationController.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/OrganizationController.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/OrganizationMemberController.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/OrganizationMemberController.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/RegisteredClientController.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/RegisteredClientController.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/UserController.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/UserController.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/ValidationController.com.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/ValidationController.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.controller/index.source.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/ApiResponse.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/ChangeRequestCreateDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/ChangeRequestDTO.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/ChangeRequestResponseDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/ClientCheckinDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/EntryRequestCreateDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/EntryRequestDTO.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/EntryRequestResponseDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/GenerateCodeRequest.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/GeneratedCodeResponse.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/LoginDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/MemberUpdateDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/OrganizationCreateDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/OrganizationCreateDTO.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/OrganizationMemberDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/OrganizationMemberDTO.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/OrganizationResponseDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/OrganizationResponseDTO.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/OrganizationUpdateDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/OrganizationUpdateDTO.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/RegisteredClientDTO.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/RegisteredClientResponseDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/ReviewRequestDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/UserDTO$Companion.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/UserDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/UserDTO.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/UserUpdateDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/ValidateCodeRequest.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/ValidationResponseDTO.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/index.source.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.dto/qrCodeDTO.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/AuthCode.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/AuthCode.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/ChangeRequest.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/ChangeRequest.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/ClientStatus.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/EntryRequest.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/EntryRequest.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/MemberStatus.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/Organization.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/Organization.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/OrganizationMember.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/OrganizationMember.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/RegisteredClient.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/RegisteredClient.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/RequestStatus.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/RequestStatus.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/Role.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/User.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/User.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.models/index.source.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/AuthCodeRepository.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/AuthCodeRepository.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/ChangeRequestRepository.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/ChangeRequestRepository.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/EntryRequestRepository.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/EntryRequestRepository.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/OrganizationMemberRepository.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/OrganizationMemberRepository.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/OrganizationRepository.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/OrganizationRepository.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/RegisteredClientRepository.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/RegisteredClientRepository.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/UserRepository.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/UserRepository.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.repository/index.source.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/AuthCodeService.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/AuthCodeService.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/AuthService.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/AuthService.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/ChangeRequestService.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/ChangeRequestService.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/CloudinaryService.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/CloudinaryService.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/EntryRequestService.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/EntryRequestService.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/ImageProcessingService.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/OrganizationMemberService.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/OrganizationMemberService.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/OrganizationService.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/OrganizationService.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/RegisteredClientService.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/RegisteredClientService.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/SyncService.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/SyncService.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/UserService.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/UserService.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/imageProcessingService.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface.service/index.source.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface/CampusfaceApplication.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface/CampusfaceApplication.kt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface/CampusfaceApplicationKt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/br.com.fatec.campusface/index.source.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/diagrama.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/branchfc.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/branchnc.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/branchpc.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/bundle.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/class.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/down.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/greenbar.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/group.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/method.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/package.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/prettify.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/prettify.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/redbar.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/report.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/report.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/session.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/sort.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/sort.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/source.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-resources/up.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/jacoco-sessions.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradlew" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradlew.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/CampusfaceApplication.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/configuration/CloudinaryConfig.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/configuration/FirebaseConfiguration.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/configuration/HttpClientConfig.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/configuration/OpenApiConfig.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/configuration/SecurityConfiguration.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/configuration/SecurityFilter.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/configuration/WebConfig.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/controller/AuthController.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/controller/ChangeRequestController.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/controller/EntryRequestController.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/controller/OrganizationController.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/controller/OrganizationMemberController.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/controller/RegisteredClientController.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/controller/UserController.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/controller/ValidationController.com.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/dto/ChangeRequestDTO.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/dto/EntryRequestDTO.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/dto/OrganizationCreateDTO.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/dto/OrganizationMemberDTO.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/dto/OrganizationResponseDTO.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/dto/OrganizationUpdateDTO.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/dto/RegisteredClientDTO.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/dto/UserDTO.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/dto/qrCodeDTO.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/models/AuthCode.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/models/ChangeRequest.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/models/EntryRequest.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/models/Organization.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/models/OrganizationMember.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/models/RegisteredClient.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/models/RequestStatus.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/models/User.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/repository/AuthCodeRepository.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/repository/ChangeRequestRepository.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/repository/EntryRequestRepository.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/repository/OrganizationMemberRepository.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/repository/OrganizationRepository.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/repository/RegisteredClientRepository.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/repository/UserRepository.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/service/AuthCodeService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/service/AuthService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/service/ChangeRequestService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/service/CloudinaryService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/service/EntryRequestService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/service/OrganizationMemberService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/service/OrganizationService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/service/RegisteredClientService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/service/SyncService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/service/UserService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/br/com/fatec/campusface/service/imageProcessingService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/br/com/fatec/campusface/CampusfaceApplicationTests.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/br/com/fatec/campusface/controller/AuthControllerTest.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/br/com/fatec/campusface/controller/OrganizationMemberControllerTest.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/br/com/fatec/campusface/controller/ValidationControllerTest.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/br/com/fatec/campusface/models/AuthCodeTest.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/br/com/fatec/campusface/service/AuthCodeServiceTest.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/br/com/fatec/campusface/service/OrganizationMemberServiceTest.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/system.properties" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerSettings">
+    <execution />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="campusface" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="campusface" type="f1a62948:ProjectNode" />
+                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Kotlin Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="362U3WMi5YtxwzjQLt4OJzMMT4U" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.AuthCodeServiceTest.executor": "Run",
+    "Gradle.AuthCodeTest.executor": "Run",
+    "Gradle.AuthControllerTest.executor": "Run",
+    "Gradle.Build campus-face-springboot-kotlin.executor": "Run",
+    "Gradle.OrganizationMemberServiceTest.executor": "Run",
+    "Gradle.ValidationControllerTest.executor": "Run",
+    "JavaScript Debug.problems-report.html.executor": "Run",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Spring Boot.CampusfaceApplication.executor": "Run",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/Henrique/dev/campus-face-antonio",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Henrique\dev\repositorios\campus-face-springboot-kotlin\src\main\resources" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Henrique\dev\repositorios\campus-face-springboot-kotlin\src\test\kotlin\br\com\fatec\campusface\controller" />
+      <recent name="C:\Users\Henrique\dev\repositorios\campus-face-springboot-kotlin\docs" />
+    </key>
+    <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
+      <recent name="br.com.fatec.campusface" />
+      <recent name="br.com.fatec.campusface.controller" />
+      <recent name="br.com.fatec.campusface.service" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Spring Boot.CampusfaceApplication">
+    <configuration name="AuthCodeTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;br.com.fatec.campusface.models.AuthCodeTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="AuthControllerTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;br.com.fatec.campusface.controller.AuthControllerTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="OrganizationMemberServiceTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;br.com.fatec.campusface.service.OrganizationMemberServiceTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="ValidationControllerTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;br.com.fatec.campusface.controller.ValidationControllerTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="campus-face-springboot-kotlin" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="campus-face-springboot-kotlin" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="Python.FlaskServer">
+      <module name="campus-face-springboot-kotlin" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="launchJavascriptDebuger" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration name="CampusfaceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="campusface.main" />
+      <option name="SHORTEN_COMMAND_LINE" value="ARGS_FILE" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="br.com.fatec.campusface.CampusfaceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <option name="SHORTEN_COMMAND_LINE" value="ARGS_FILE" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="Tox" factoryName="Tox">
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Gradle.AuthControllerTest" />
+        <item itemvalue="Gradle.OrganizationMemberServiceTest" />
+        <item itemvalue="Gradle.ValidationControllerTest" />
+        <item itemvalue="Gradle.AuthCodeTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.24978.46" />
+        <option value="bundled-js-predefined-d6986cc7102b-76f8388c3a79-JavaScript-IU-243.24978.46" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5235aee4-a11f-4a84-b5aa-9dc5bf6e2c59" name="Changes" comment="" />
+      <created>1764203960209</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1764203960209</updated>
+      <workItem from="1764203961362" duration="8513000" />
+      <workItem from="1764246284297" duration="8276000" />
+      <workItem from="1764291192937" duration="10170000" />
+      <workItem from="1764380252502" duration="1174000" />
+      <workItem from="1764381451268" duration="6948000" />
+      <workItem from="1764456296358" duration="628000" />
+      <workItem from="1764456949186" duration="13965000" />
+      <workItem from="1764524452544" duration="26817000" />
+      <workItem from="1764643147914" duration="65000" />
+      <workItem from="1764643238860" duration="60000" />
+      <workItem from="1764643465163" duration="10906000" />
+      <workItem from="1764774949874" duration="18566000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
