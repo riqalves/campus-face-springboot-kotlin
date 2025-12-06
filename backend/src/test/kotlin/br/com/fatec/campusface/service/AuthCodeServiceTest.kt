@@ -271,7 +271,7 @@ class AuthCodeServiceTest {
     }
 
     @Test
-    fun `validateCode should fail when validator is NOT found in organization`() {
+    fun `validateCode deve falhar quando o Fiscal nao é encontrado na organizacao`() {
         // ARRANGE
         val codeStr = "123456"
         val validatorId = "unknown-id"

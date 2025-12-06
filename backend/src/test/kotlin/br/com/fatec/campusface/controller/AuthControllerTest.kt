@@ -79,7 +79,7 @@ class AuthControllerTest {
         // O teste é para garantir que a regra de negócio (userService.validateEmail) retorna 401
         val loginData = LoginDTO("email@formato.ok", "123")
 
-        // Simulamos que, apesar do formato ok, o service rejeitou (regra de negócio)
+        // Simulamos que apesar do formato ok, o service rejeitou por conta da regra de negocio
         every { userService.validateEmail(loginData.email) } returns false
 
         mockMvc.perform(post("/auth/login")
