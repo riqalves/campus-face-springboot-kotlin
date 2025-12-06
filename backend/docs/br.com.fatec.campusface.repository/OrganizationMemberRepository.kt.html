@@ -16,22 +16,20 @@ import org.springframework.stereotype.Repository
 <span class="nc" id="L16">            throw IllegalArgumentException(&quot;O ID do usuário e da organização não podem ser vazios&quot;)</span>
         }
 
-        // Se já tiver ID, atualiza. Se não, cria um novo documento.
-<span class="nc bnc" id="L20" title="All 4 branches missed.">        val docRef = if (member.id.isNotEmpty()) collection.document(member.id) else collection.document()</span>
-<span class="nc" id="L21">        val memberWithId = member.copy(id = docRef.id)</span>
+<span class="nc bnc" id="L19" title="All 4 branches missed.">        val docRef = if (member.id.isNotEmpty()) collection.document(member.id) else collection.document()</span>
+<span class="nc" id="L20">        val memberWithId = member.copy(id = docRef.id)</span>
 
-        // Usamos .set() para criar ou sobrescrever
-<span class="nc" id="L24">        docRef.set(memberWithId).get()</span>
+<span class="nc" id="L22">        docRef.set(memberWithId).get()</span>
 
-<span class="nc" id="L26">        return memberWithId</span>
+<span class="nc" id="L24">        return memberWithId</span>
     }
 
     fun findById(id: String): OrganizationMember? {
-<span class="nc" id="L30">        val document = collection.document(id).get().get()</span>
-<span class="nc bnc" id="L31" title="All 2 branches missed.">        return if (document.exists()) {</span>
-<span class="nc bnc" id="L32" title="All 2 branches missed.">            document.toObject(OrganizationMember::class.java)?.copy(id = document.id)</span>
+<span class="nc" id="L28">        val document = collection.document(id).get().get()</span>
+<span class="nc bnc" id="L29" title="All 2 branches missed.">        return if (document.exists()) {</span>
+<span class="nc bnc" id="L30" title="All 2 branches missed.">            document.toObject(OrganizationMember::class.java)?.copy(id = document.id)</span>
         } else {
-<span class="nc" id="L34">            null</span>
+<span class="nc" id="L32">            null</span>
         }
     }
 
@@ -40,25 +38,25 @@ import org.springframework.stereotype.Repository
      * Essencial para verificar permissões (ex: &quot;Este usuário é ADMIN desta org?&quot;).
      */
     fun findByUserIdAndOrganizationId(userId: String, organizationId: String): OrganizationMember? {
-<span class="nc" id="L43">        val snapshot = collection</span>
-<span class="nc" id="L44">            .whereEqualTo(&quot;userId&quot;, userId)</span>
-<span class="nc" id="L45">            .whereEqualTo(&quot;organizationId&quot;, organizationId)</span>
-<span class="nc" id="L46">            .limit(1)</span>
-<span class="nc" id="L47">            .get().get()</span>
+<span class="nc" id="L41">        val snapshot = collection</span>
+<span class="nc" id="L42">            .whereEqualTo(&quot;userId&quot;, userId)</span>
+<span class="nc" id="L43">            .whereEqualTo(&quot;organizationId&quot;, organizationId)</span>
+<span class="nc" id="L44">            .limit(1)</span>
+<span class="nc" id="L45">            .get().get()</span>
 
-<span class="nc bnc" id="L49" title="All 4 branches missed.">        return snapshot.documents.firstOrNull()?.toObject(OrganizationMember::class.java)?.copy(id = snapshot.documents.first().id)</span>
+<span class="nc bnc" id="L47" title="All 4 branches missed.">        return snapshot.documents.firstOrNull()?.toObject(OrganizationMember::class.java)?.copy(id = snapshot.documents.first().id)</span>
     }
 
     /**
      * Retorna todas as organizações das quais o usuário faz parte.
      */
     fun findAllByUserId(userId: String): List&lt;OrganizationMember&gt; {
-<span class="nc" id="L56">        val snapshot = collection</span>
-<span class="nc" id="L57">            .whereEqualTo(&quot;userId&quot;, userId)</span>
-<span class="nc" id="L58">            .get()</span>
-<span class="nc" id="L59">            .get()</span>
-<span class="nc" id="L60">        return snapshot.documents.mapNotNull { doc -&gt;</span>
-<span class="nc bnc" id="L61" title="All 2 branches missed.">            doc.toObject(OrganizationMember::class.java)?.copy(id = doc.id)</span>
+<span class="nc" id="L54">        val snapshot = collection</span>
+<span class="nc" id="L55">            .whereEqualTo(&quot;userId&quot;, userId)</span>
+<span class="nc" id="L56">            .get()</span>
+<span class="nc" id="L57">            .get()</span>
+<span class="nc" id="L58">        return snapshot.documents.mapNotNull { doc -&gt;</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">            doc.toObject(OrganizationMember::class.java)?.copy(id = doc.id)</span>
         }
     }
 
@@ -66,12 +64,12 @@ import org.springframework.stereotype.Repository
      * Retorna todos os membros de uma organização.
      */
     fun findAllByOrganizationId(organizationId: String): List&lt;OrganizationMember&gt; {
-<span class="nc" id="L69">        val snapshot = collection</span>
-<span class="nc" id="L70">            .whereEqualTo(&quot;organizationId&quot;, organizationId)</span>
-<span class="nc" id="L71">            .get()</span>
-<span class="nc" id="L72">            .get()</span>
-<span class="nc" id="L73">        return snapshot.documents.mapNotNull { doc -&gt;</span>
-<span class="nc bnc" id="L74" title="All 2 branches missed.">            doc.toObject(OrganizationMember::class.java)?.copy(id = doc.id)</span>
+<span class="nc" id="L67">        val snapshot = collection</span>
+<span class="nc" id="L68">            .whereEqualTo(&quot;organizationId&quot;, organizationId)</span>
+<span class="nc" id="L69">            .get()</span>
+<span class="nc" id="L70">            .get()</span>
+<span class="nc" id="L71">        return snapshot.documents.mapNotNull { doc -&gt;</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">            doc.toObject(OrganizationMember::class.java)?.copy(id = doc.id)</span>
         }
     }
 
@@ -79,14 +77,14 @@ import org.springframework.stereotype.Repository
      * Busca membros de uma organização filtrando pelo cargo (Role).
      */
     fun findByOrganizationIdAndRole(organizationId: String, role: Role): List&lt;OrganizationMember&gt; {
-<span class="nc" id="L82">        val snapshot = collection</span>
-<span class="nc" id="L83">            .whereEqualTo(&quot;organizationId&quot;, organizationId)</span>
-<span class="nc" id="L84">            .whereEqualTo(&quot;role&quot;, role.name)</span>
-<span class="nc" id="L85">            .get()</span>
-<span class="nc" id="L86">            .get()</span>
+<span class="nc" id="L80">        val snapshot = collection</span>
+<span class="nc" id="L81">            .whereEqualTo(&quot;organizationId&quot;, organizationId)</span>
+<span class="nc" id="L82">            .whereEqualTo(&quot;role&quot;, role.name)</span>
+<span class="nc" id="L83">            .get()</span>
+<span class="nc" id="L84">            .get()</span>
 
-<span class="nc" id="L88">        return snapshot.documents.mapNotNull { doc -&gt;</span>
-<span class="nc" id="L89">            doc.toObject(OrganizationMember::class.java).copy(id = doc.id)</span>
+<span class="nc" id="L86">        return snapshot.documents.mapNotNull { doc -&gt;</span>
+<span class="nc" id="L87">            doc.toObject(OrganizationMember::class.java).copy(id = doc.id)</span>
         }
     }
 
@@ -94,25 +92,25 @@ import org.springframework.stereotype.Repository
      * Atualiza apenas o campo 'faceImageId'.
      */
     fun updateFaceImageId(id: String, newFaceImagePublicId: String) {
-<span class="nc" id="L97">        collection.document(id).update(&quot;faceImageId&quot;, newFaceImagePublicId).get()</span>
-<span class="nc" id="L98">    }</span>
+<span class="nc" id="L95">        collection.document(id).update(&quot;faceImageId&quot;, newFaceImagePublicId).get()</span>
+<span class="nc" id="L96">    }</span>
 
     /**
      * Atualiza o Status (ex: banir um membro ou aprovar um pendente).
      */
     fun updateStatus(id: String, status: MemberStatus) {
-<span class="nc" id="L104">        collection.document(id).update(&quot;status&quot;, status.name).get()</span>
-<span class="nc" id="L105">    }</span>
+<span class="nc" id="L102">        collection.document(id).update(&quot;status&quot;, status.name).get()</span>
+<span class="nc" id="L103">    }</span>
 
     /**
      * Atualiza a Role (ex: promover de MEMBER para VALIDATOR).
      */
     fun updateRole(id: String, role: Role) {
-<span class="nc" id="L111">        collection.document(id).update(&quot;role&quot;, role.name).get()</span>
-<span class="nc" id="L112">    }</span>
+<span class="nc" id="L109">        collection.document(id).update(&quot;role&quot;, role.name).get()</span>
+<span class="nc" id="L110">    }</span>
 
     fun delete(id: String) {
-<span class="nc" id="L115">        collection.document(id).delete().get()</span>
-<span class="nc" id="L116">    }</span>
+<span class="nc" id="L113">        collection.document(id).delete().get()</span>
+<span class="nc" id="L114">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

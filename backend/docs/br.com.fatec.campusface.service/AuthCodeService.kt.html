@@ -29,60 +29,56 @@ import java.time.temporal.ChronoUnit
 <span class="fc" id="L29">            throw IllegalStateException(&quot;Seu cadastro nesta organização não está ativo (Status: ${member.status}).&quot;)</span>
         }
 
-        // invalida códigos velhos
-<span class="fc" id="L33">        authCodeRepository.invalidatePreviousCodes(userId, organizationId)</span>
+<span class="fc" id="L32">        authCodeRepository.invalidatePreviousCodes(userId, organizationId)</span>
 
         // gera novo código
-<span class="fc" id="L36">        val code = (100000..999999).random().toString() // Ex: 123456</span>
-<span class="fc" id="L37">        val expirationTime = Instant.now().plus(5, ChronoUnit.MINUTES)</span>
+<span class="fc" id="L35">        val code = (100000..999999).random().toString() // Ex: 123456</span>
+<span class="fc" id="L36">        val expirationTime = Instant.now().plus(5, ChronoUnit.MINUTES)</span>
 
-<span class="fc" id="L39">        val newAuthCode = AuthCode(</span>
-<span class="fc" id="L40">            code = code,</span>
-<span class="fc" id="L41">            userId = userId,</span>
-<span class="fc" id="L42">            organizationId = organizationId,</span>
-<span class="fc" id="L43">            expirationTime = expirationTime</span>
+<span class="fc" id="L38">        val newAuthCode = AuthCode(</span>
+<span class="fc" id="L39">            code = code,</span>
+<span class="fc" id="L40">            userId = userId,</span>
+<span class="fc" id="L41">            organizationId = organizationId,</span>
+<span class="fc" id="L42">            expirationTime = expirationTime</span>
         )
 
-<span class="fc" id="L46">        authCodeRepository.save(newAuthCode)</span>
+<span class="fc" id="L45">        authCodeRepository.save(newAuthCode)</span>
 
-<span class="fc" id="L48">        return GeneratedCodeResponse(newAuthCode.code, newAuthCode.expirationTime)</span>
+<span class="fc" id="L47">        return GeneratedCodeResponse(newAuthCode.code, newAuthCode.expirationTime)</span>
     }
 
     /**
      * Valida um código escaneado por um Validator.
      */
     fun validateCode(code: String, validatorUserId: String): ValidationResponseDTO {
-<span class="fc bfc" id="L55" title="All 2 branches covered.">        val authCode = authCodeRepository.findValidByCode(code)</span>
-<span class="fc" id="L56">            ?: return ValidationResponseDTO(false, &quot;Código inválido, não encontrado ou já utilizado.&quot;, null)</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        val authCode = authCodeRepository.findValidByCode(code)</span>
+<span class="fc" id="L55">            ?: return ValidationResponseDTO(false, &quot;Código inválido, não encontrado ou já utilizado.&quot;, null)</span>
 
         // Verificacao de validade temporal
-<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (Instant.now().isAfter(authCode.expirationTime)) {</span>
-<span class="fc" id="L60">            authCodeRepository.invalidateCode(authCode.id)</span>
-<span class="fc" id="L61">            return ValidationResponseDTO(false, &quot;Código expirado.&quot;, null)</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (Instant.now().isAfter(authCode.expirationTime)) {</span>
+<span class="fc" id="L59">            authCodeRepository.invalidateCode(authCode.id)</span>
+<span class="fc" id="L60">            return ValidationResponseDTO(false, &quot;Código expirado.&quot;, null)</span>
         }
 
-        // Verifica se o validator tem permissão na Org do código
-<span class="fc" id="L65">        val validatorMember = orgMemberRepository.findByUserIdAndOrganizationId(validatorUserId, authCode.organizationId)</span>
+<span class="fc" id="L63">        val validatorMember = orgMemberRepository.findByUserIdAndOrganizationId(validatorUserId, authCode.organizationId)</span>
 
-<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if (validatorMember == null ||</span>
-<span class="pc bpc" id="L68" title="1 of 4 branches missed.">            (validatorMember.role != Role.VALIDATOR &amp;&amp; validatorMember.role != Role.ADMIN) ||</span>
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">            validatorMember.status != MemberStatus.ACTIVE) {</span>
-            // Não invalidamos o código aqui, pois pode ter sido apenas um erro de quem escaneou (fiscal errado)
-<span class="fc" id="L71">            throw IllegalAccessException(&quot;Você não tem permissão de VALIDATOR nesta organização.&quot;)</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        if (validatorMember == null ||</span>
+<span class="fc bfc" id="L66" title="All 4 branches covered.">            (validatorMember.role != Role.VALIDATOR &amp;&amp; validatorMember.role != Role.ADMIN) ||</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">            validatorMember.status != MemberStatus.ACTIVE) {</span>
+<span class="fc" id="L68">            throw IllegalAccessException(&quot;Você não tem permissão de VALIDATOR nesta organização.&quot;)</span>
         }
 
-<span class="fc" id="L74">        authCodeRepository.invalidateCode(authCode.id)</span>
+<span class="fc" id="L71">        authCodeRepository.invalidateCode(authCode.id)</span>
 
-        // busca dados do dono do código para mostrar na tela do validator
-<span class="fc bfc" id="L77" title="All 2 branches covered.">        val targetMember = orgMemberRepository.findByUserIdAndOrganizationId(authCode.userId, authCode.organizationId)</span>
-<span class="fc" id="L78">            ?: return ValidationResponseDTO(false, &quot;Usuário do código não encontrado na organização.&quot;, null)</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        val targetMember = orgMemberRepository.findByUserIdAndOrganizationId(authCode.userId, authCode.organizationId)</span>
+<span class="fc" id="L74">            ?: return ValidationResponseDTO(false, &quot;Usuário do código não encontrado na organização.&quot;, null)</span>
 
-<span class="fc" id="L80">        val memberDto = orgMemberService.getMemberById(targetMember.id)</span>
+<span class="fc" id="L76">        val memberDto = orgMemberService.getMemberById(targetMember.id)</span>
 
-<span class="fc" id="L82">        return ValidationResponseDTO(</span>
-<span class="fc" id="L83">            valid = true,</span>
-<span class="fc" id="L84">            message = &quot;Acesso Autorizado!&quot;,</span>
-<span class="fc" id="L85">            member = memberDto</span>
+<span class="fc" id="L78">        return ValidationResponseDTO(</span>
+<span class="fc" id="L79">            valid = true,</span>
+<span class="fc" id="L80">            message = &quot;Acesso Autorizado!&quot;,</span>
+<span class="fc" id="L81">            member = memberDto</span>
         )
     }
 }
