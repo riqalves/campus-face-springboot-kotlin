@@ -177,22 +177,20 @@ class OrganizationMemberServiceTest {
         // ARRANGE
         val memberId = "m1"
         val userId = "u1"
-        // Membro JÁ ESTÁ como ACTIVE
         val member = OrganizationMember(id = memberId, userId = userId, status = MemberStatus.ACTIVE)
         val user = User(id = userId)
 
         every { memberRepository.findById(memberId) } returns member
 
-        // Dependências para o retorno (getMemberById)
+        // Dependências para o retorno
         every { userRepository.findById(userId) } returns user
         every { cloudinaryService.generateSignedUrl(any()) } returns "url"
 
         // ACT
-        // Tentamos mudar para ACTIVE (o mesmo que já estava)
         memberService.updateMemberStatus(memberId, MemberStatus.ACTIVE)
 
         // ASSERT
-        // Garante que o updateStatus JAMAIS foi chamado (Economia de banco)
+        // Garante que o updateStatus JAMAIS foi chamado 
         verify(exactly = 0) { memberRepository.updateStatus(any(), any()) }
     }
 
@@ -220,7 +218,7 @@ class OrganizationMemberServiceTest {
         every { memberRepository.findById("m1") } returns member
         every { memberRepository.delete("m1") } just Runs
 
-        // CORREÇÃO: Mock do disparo do sync
+        // mock do disparo do sync
         every { syncService.syncMemberDeletion(orgId, userId) } just Runs
 
         // ACT

@@ -113,15 +113,14 @@ class OrganizationMemberControllerTest {
         // ARRANGE
         val updateDto = MemberUpdateDTO(role = Role.VALIDATOR, status = null)
 
-        // 1. Busca o membro alvo (para saber a org)
+        // Busca o membro alvo (para saber a org)
         val targetMember = OrganizationMember(id = memberId, userId = "otherUser", organizationId = orgId)
         every { memberRepository.findById(memberId) } returns targetMember
 
-        // 2. Verifica permissão do Admin
+        // Verifica permissão do Admin
         val adminMembership = OrganizationMember(userId = adminUserId, organizationId = orgId, role = Role.ADMIN, status = MemberStatus.ACTIVE)
         every { memberRepository.findByUserIdAndOrganizationId(adminUserId, orgId) } returns adminMembership
 
-        // 3. Executa o update no serviço
         val responseDto = OrganizationMemberDTO(id = memberId, role = Role.VALIDATOR, status = MemberStatus.ACTIVE, joinedAt = Instant.now(), user = UserDTO(id="u2", fullName="Other", email="e", document="d", faceImageId="f", createdAt=Instant.now(), updatedAt=Instant.now()))
         every { memberService.updateMemberRole(memberId, Role.VALIDATOR) } returns responseDto
 
@@ -169,7 +168,6 @@ class OrganizationMemberControllerTest {
         val adminMembership = OrganizationMember(userId = adminUserId, organizationId = orgId, role = Role.ADMIN, status = MemberStatus.ACTIVE)
         every { memberRepository.findByUserIdAndOrganizationId(adminUserId, orgId) } returns adminMembership
 
-        // Serviço remove
         every { memberService.removeMember(memberId) } just runs
 
         // ACT & ASSERT
@@ -200,10 +198,8 @@ class OrganizationMemberControllerTest {
     fun `getMember deve retornar 200 OK se o usuario estiver acessando seu proprio registro (isSelf)`() {
         // ARRANGE
         val myMemberId = "my_mem_id"
-        // O usuário logado é 'normalUser' (id: normalUser) definido no setup da classe
         val myAuth = memberAuth
 
-        // DTO retornado pelo serviço: O ID do usuário dentro do DTO bate com o ID do token
         val myUserDto = UserDTO(id = memberUserId, fullName = "Me", email = "me@me.com", document = "1", faceImageId = "f", createdAt = Instant.now(), updatedAt = Instant.now())
         val myMemberDto = OrganizationMemberDTO(id = myMemberId, role = Role.MEMBER, status = MemberStatus.ACTIVE, joinedAt = Instant.now(), user = myUserDto)
 
@@ -214,24 +210,20 @@ class OrganizationMemberControllerTest {
             .principal(myAuth))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.data.id").value(myMemberId))
-        // Nota: Não precisamos mockar o Repository aqui porque o 'isSelf' dá true e o if de segurança é pulado
     }
 
     @Test
     fun `getMember deve retornar 200 OK se um ADMIN acessar dados de outro usuario`() {
         // ARRANGE
         val targetMemberId = "other_mem_id"
-        // Usuário logado é Admin (id: adminUser)
 
         // DTO do alvo (é outro usuário)
         val targetUserDto = UserDTO(id = "otherUser", fullName = "Other", email = "o@o.com", document = "2", faceImageId = "f", createdAt = Instant.now(), updatedAt = Instant.now())
         val targetMemberDto = OrganizationMemberDTO(id = targetMemberId, role = Role.MEMBER, status = MemberStatus.ACTIVE, joinedAt = Instant.now(), user = targetUserDto)
 
-        // serviço retorna o DTO
         every { memberService.getMemberById(targetMemberId) } returns targetMemberDto
 
         // Mock dos métodos auxiliares privados do Controller:
-        // 'authenticationOrgId' chama findById
         val targetMemberEntity = OrganizationMember(id = targetMemberId, userId = "otherUser", organizationId = orgId)
         every { memberRepository.findById(targetMemberId) } returns targetMemberEntity
 

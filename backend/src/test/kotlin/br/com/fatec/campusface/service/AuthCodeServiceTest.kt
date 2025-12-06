@@ -27,7 +27,7 @@ class AuthCodeServiceTest {
     lateinit var orgMemberRepository: OrganizationMemberRepository
 
     @MockK
-    lateinit var memberService: OrganizationMemberService
+    lateinit var orgMemberService: OrganizationMemberService
 
     @InjectMockKs
     lateinit var authCodeService: AuthCodeService
@@ -75,7 +75,6 @@ class AuthCodeServiceTest {
             authCodeService.generateCode(userId, orgId)
         }
 
-        // Verifica se a mensagem contém o texto esperado e o status correto
         assertTrue(exception.message!!.contains("não está ativo"))
         assertTrue(exception.message!!.contains("INACTIVE"))
     }
@@ -172,12 +171,120 @@ class AuthCodeServiceTest {
         every { orgMemberRepository.findByUserIdAndOrganizationId("fiscal", orgId) } returns fiscal
         every { authCodeRepository.invalidateCode("c1") } just Runs
         every { orgMemberRepository.findByUserIdAndOrganizationId(userId, orgId) } returns targetMember
-        every { memberService.getMemberById("m1") } returns memberDto
+        every { orgMemberService.getMemberById("m1") } returns memberDto
 
         val result = authCodeService.validateCode("123456", "fiscal")
 
         assertTrue(result.valid)
         assertEquals("Acesso Autorizado!", result.message)
         assertNotNull(result.member)
+    }
+
+    @Test
+    fun `validateCode deve lancar IllegalAccessException quando o validador e possui uma ROLE mas nao está ativo`() {
+        // ARRANGE
+        val codeStr = "123456"
+        val validatorId = "validator-user-id"
+        val orgId = "org-id"
+
+        // Mock do QR Code válido
+        val validAuthCode = AuthCode(
+            code = codeStr,
+            userId = "member-id",
+            organizationId = orgId,
+            expirationTime = Instant.now().plusSeconds(60)
+        )
+
+        val inactiveValidator = OrganizationMember(
+            id = "member-ref-id",
+            userId = validatorId,
+            organizationId = orgId,
+            role = Role.VALIDATOR,
+            status = MemberStatus.INACTIVE
+        )
+
+        // Configurando os Mocks
+        every { authCodeRepository.findValidByCode(codeStr) } returns validAuthCode
+        every { orgMemberRepository.findByUserIdAndOrganizationId(validatorId, orgId) } returns inactiveValidator
+
+        // ACT & ASSERT
+        val exception = assertThrows<IllegalAccessException> {
+            authCodeService.validateCode(codeStr, validatorId)
+        }
+
+        assertEquals("Você não tem permissão de VALIDATOR nesta organização.", exception.message)
+
+        // Verifica se NÃO invalidou o código (pois foi erro de fiscal, não do código)
+        verify(exactly = 0) { authCodeRepository.invalidateCode(any()) }
+    }
+
+
+    @Test
+    fun `validateCode deve retornar sucesso quando o VALIDADOR possui a ROLE ADMIN`() {
+        // ARRANGE
+        val codeStr = "123456"
+        val validatorId = "admin-id"
+        val orgId = "org-id"
+
+        val validAuthCode = AuthCode(code = codeStr, userId = "user-id", organizationId = orgId, expirationTime = Instant.now().plusSeconds(60))
+        val targetMember = OrganizationMember(id = "m1", userId = "user-id", organizationId = orgId)
+
+        val adminValidator = OrganizationMember(
+            id = "admin-ref", userId = validatorId, organizationId = orgId,
+            role = Role.ADMIN, status = MemberStatus.ACTIVE
+        )
+
+        every { authCodeRepository.findValidByCode(codeStr) } returns validAuthCode
+        every { orgMemberRepository.findByUserIdAndOrganizationId(validatorId, orgId) } returns adminValidator
+        every { authCodeRepository.invalidateCode(any()) } just Runs
+        every { orgMemberRepository.findByUserIdAndOrganizationId("user-id", orgId) } returns targetMember
+        every { orgMemberService.getMemberById(any()) } returns mockk()
+
+        // ACT
+        val response = authCodeService.validateCode(codeStr, validatorId)
+
+        // ASSERT
+        assertTrue(response.valid)
+    }
+
+
+    @Test
+    fun `validateCode deve falhar quando o validador tem a ROLE MEMBER`() {
+        // ARRANGE
+        val codeStr = "123456"
+        val validatorId = "member-id"
+        val orgId = "org-id"
+        val validAuthCode = AuthCode(code = codeStr, userId = "u", organizationId = orgId, expirationTime = Instant.now().plusSeconds(60))
+
+        val memberValidator = OrganizationMember(
+            id = "m-ref", userId = validatorId, organizationId = orgId,
+            role = Role.MEMBER, status = MemberStatus.ACTIVE
+        )
+
+        every { authCodeRepository.findValidByCode(codeStr) } returns validAuthCode
+        every { orgMemberRepository.findByUserIdAndOrganizationId(validatorId, orgId) } returns memberValidator
+
+        // ACT & ASSERT
+        assertThrows<IllegalAccessException> {
+            authCodeService.validateCode(codeStr, validatorId)
+        }
+    }
+
+    @Test
+    fun `validateCode should fail when validator is NOT found in organization`() {
+        // ARRANGE
+        val codeStr = "123456"
+        val validatorId = "unknown-id"
+        val orgId = "org-id"
+        val validAuthCode = AuthCode(code = codeStr, userId = "u", organizationId = orgId, expirationTime = Instant.now().plusSeconds(60))
+
+        every { authCodeRepository.findValidByCode(codeStr) } returns validAuthCode
+        // Retorna NULL
+        every { orgMemberRepository.findByUserIdAndOrganizationId(validatorId, orgId) } returns null
+
+        // ACT & ASSERT
+        assertThrows<IllegalAccessException> {
+            authCodeService.validateCode(codeStr, validatorId)
+        }
     }
 }
